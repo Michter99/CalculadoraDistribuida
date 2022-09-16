@@ -1,6 +1,7 @@
 package calc.calculadora;
 
 import java.io.*;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -38,11 +39,13 @@ public class Middleware {
                     // Realizar el broadcast menos al emisor
                     for (int i : cells) {
                         if (i != serverPackage.getEmisor()) {
-                            Socket socketReceiver = new Socket("localhost", i);
-                            ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
-                            outputStream.writeObject(serverPackage);
-                            System.out.println("Paquete reenviado a " + i);
-                            socketReceiver.close();
+                            try {
+                                Socket socketReceiver = new Socket("localhost", i);
+                                ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
+                                outputStream.writeObject(serverPackage);
+                                System.out.println("Paquete reenviado a " + i);
+                                socketReceiver.close();
+                            } catch (ConnectException ignored) {}
                         }
                     }
                 } catch (IOException | ClassNotFoundException e ) {
@@ -72,11 +75,13 @@ public class Middleware {
                     // Realizar el broadcast menos al emisor
                     for (int i : cells) {
                         if (i != clientPackage.getEmisor()) {
-                            Socket socketReceiver = new Socket("localhost", i);
-                            ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
-                            outputStream.writeObject(clientPackage);
-                            System.out.println("Paquete reenviado a " + i);
-                            socketReceiver.close();
+                            try {
+                                Socket socketReceiver = new Socket("localhost", i);
+                                ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
+                                outputStream.writeObject(clientPackage);
+                                System.out.println("Paquete reenviado a " + i);
+                                socketReceiver.close();
+                            } catch (ConnectException ignored) {}
                         }
                     }
                     Thread.currentThread().interrupt();
