@@ -99,6 +99,8 @@ public class CalculatorController implements Initializable {
                     PackageToClient serverPackage = (PackageToClient) inputStream.readObject();
                     result = String.valueOf(serverPackage.getResult());
                     Platform.runLater(() -> output.setText(result));
+                    System.out.println(serverPackage.getEmisor());
+                    System.out.println(serverPackage.getResult() + "\n");
                     inputStream.close();
                     socket.close();
                 } catch (ClassCastException ignored) {
