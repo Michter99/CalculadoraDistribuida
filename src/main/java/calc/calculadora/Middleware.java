@@ -33,6 +33,7 @@ public class Middleware {
                     }
 
                     System.out.println("\nPaquete recibido de " + serverPackage.getEmisor());
+                    System.out.println("Código de operación: " + serverPackage.getOperationCode());
 
                     // Realizar el broadcast menos al emisor
                     for (int i : cells) {
