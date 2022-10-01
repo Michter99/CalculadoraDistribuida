@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -26,10 +27,18 @@ public class CalculatorController implements Initializable {
     private Label output;
 
     @FXML
+    private TextArea calcLog;
+
+    @FXML
     private void clearOutput() {
-        output.setText("0");
+        output.setText("0.0");
         start = true;
         operator = "";
+    }
+
+    @FXML
+    private void clearLog() {
+        calcLog.setText("");
     }
 
     @FXML
@@ -98,9 +107,12 @@ public class CalculatorController implements Initializable {
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                     PackageToClient serverPackage = (PackageToClient) inputStream.readObject();
                     result = String.valueOf(serverPackage.getResult());
-                    Platform.runLater(() -> output.setText(result));
-                    System.out.println("Operación procesada por el servidor " + serverPackage.getEmisor());
-                    System.out.println("Resultado: " + serverPackage.getResult() + "\n");
+                    Platform.runLater(() -> {
+                        output.setText(result);
+                        calcLog.appendText("Operación procesada por el servidor " + serverPackage.getEmisor() + "\n");
+                        calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
+                        calcLog.appendText("Resultado: " + serverPackage.getResult() + "\n\n");
+                    });
                     inputStream.close();
                     socket.close();
                 } catch (ClassCastException ignored) {
