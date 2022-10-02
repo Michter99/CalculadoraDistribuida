@@ -30,11 +30,12 @@ public class ServerController implements Initializable {
                 try {
                     Socket socket = serverSocket.accept();
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-                    PackageToServer serverPackage = (PackageToServer) inputStream.readObject();
-                    processOperation(serverPackage.getNum1(), serverPackage.getNum2(), serverPackage.getOperationCode());
+                    Package serverPackage = (Package) inputStream.readObject();
+                    if (serverPackage.getPackageType() == 'C') {
+                        processOperation(serverPackage);
+                    }
                     inputStream.close();
                     socket.close();
-                } catch (ClassCastException ignored) {
                 } catch (IOException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -42,7 +43,11 @@ public class ServerController implements Initializable {
         }).start();
     }
 
-    void processOperation(double number1, double number2, int op) throws IOException {
+    void processOperation(Package receivedPackage) throws IOException {
+        double number1 = receivedPackage.getNum1();
+        double number2 = receivedPackage.getNum2();
+        int op = receivedPackage.getOperationCode();
+
         double result = switch (op) {
             case 1 -> number1 + number2;
             case 2 -> number1 - number2;
@@ -50,6 +55,7 @@ public class ServerController implements Initializable {
             case 4 -> number1 / number2;
             default -> 0.0;
         };
+
         String operator = switch (op) {
             case 1 -> "+";
             case 2 -> "-";
@@ -57,18 +63,23 @@ public class ServerController implements Initializable {
             case 4 -> "/";
             default -> "";
         };
+
         Platform.runLater(() -> {
             calcLog.appendText("Solicitud procesada por el servidor " + portUsed + "\n");
             calcLog.appendText("Código de operación: " + op + "\n");
             calcLog.appendText(number1 + " " + operator + " " + number2 + " = " + result + "\n\n");
         });
-        sendProcessedPackage(result, op);
+
+        receivedPackage.setResult(result);
+        receivedPackage.setPackageType('S');
+        receivedPackage.setEmisor(portUsed);
+
+        sendProcessedPackage(receivedPackage);
     }
 
-    static void sendProcessedPackage(double result, int operationCode) throws IOException {
-        Socket socketSender = new Socket("localhost", 5001);
+    static void sendProcessedPackage(Package packageToClient) throws IOException {
+        Socket socketSender = new Socket("localhost", 5000);
         ObjectOutputStream outputStream = new ObjectOutputStream(socketSender.getOutputStream());
-        PackageToClient packageToClient = new PackageToClient(portUsed, result, operationCode);
         outputStream.writeObject(packageToClient);
         socketSender.close();
     }
@@ -77,7 +88,7 @@ public class ServerController implements Initializable {
         // Tratar de inicializar el servidor en el puerto definido, si ya está usado, pasar al siguiente puerto
         try {
             serverSocket = new ServerSocket(port);
-            sendProcessedPackage(0, 1); // Enviar un paquete al middleware para añadir su puerto a la lista de células
+            sendProcessedPackage(new Package('S', portUsed)); // Enviar un paquete al middleware para añadir su puerto a la lista de células
         } catch (BindException ex) {
             initializeServers(++portUsed);
         } catch (ConnectException ignored) {

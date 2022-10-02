@@ -31,90 +31,47 @@ public class MiddlewareController implements Initializable {
         calcLog.setText("");
     }
 
-    private static ServerSocket serverSocketToServer;
-    private static ServerSocket serverSocketToClient;
+    private static ServerSocket middlewareSocketToServer;
     private static final ArrayList<Integer> cells = new ArrayList<>();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
-            serverSocketToServer = new ServerSocket(5000);
-            serverSocketToClient = new ServerSocket(5001);
+            middlewareSocketToServer = new ServerSocket(5000);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        receiveAndResendPackageToServer();
-        receiveAndResendPackageToClient();
+        receiveAndResendPackage();
     }
 
-    void receiveAndResendPackageToServer() {
+    void receiveAndResendPackage() {
         new Thread(() -> {
             while (true) {
                 try {
-                    Socket socket = serverSocketToServer.accept();
+                    Socket socket = middlewareSocketToServer.accept();
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-                    PackageToServer serverPackage = (PackageToServer) inputStream.readObject();
+                    Package packageData = (Package) inputStream.readObject();
 
                     socket.close();
 
                     // Analizar la solicitud para ver si el puerto ya se encuentra en la lista de células
-                    if (!cells.contains(serverPackage.getEmisor())) {
-                        cells.add(serverPackage.getEmisor());
+                    if (!cells.contains(packageData.getEmisor())) {
+                        cells.add(packageData.getEmisor());
                     }
 
                     Platform.runLater(() -> {
-                        calcLog.appendText("Paquete recibido del cliente " + serverPackage.getEmisor() + "\n");
-                        calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n\n");
+                        calcLog.appendText("Paquete recibido de " + packageData.getEmisor() + "\n");
+                        calcLog.appendText("Código de operación: " + packageData.getOperationCode() + "\n\n");
                     });
 
 
                     // Realizar el broadcast menos al emisor
                     for (int i : cells) {
-                        if (i != serverPackage.getEmisor()) {
+                        if (i != packageData.getEmisor()) {
                             try {
                                 Socket socketReceiver = new Socket("localhost", i);
                                 ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
-                                outputStream.writeObject(serverPackage);
-                                System.out.println("Paquete reenviado a " + i);
-                                socketReceiver.close();
-                            } catch (ConnectException ignored) {}
-                        }
-                    }
-                } catch (IOException | ClassNotFoundException e ) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }).start();
-    }
-
-    void receiveAndResendPackageToClient() {
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Socket socket = serverSocketToClient.accept();
-                    ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-                    PackageToClient clientPackage = (PackageToClient) inputStream.readObject();
-
-                    socket.close();
-
-                    // Analizar la solicitud para ver si el puerto ya se encuentra en la lista de células
-                    if (!cells.contains(clientPackage.getEmisor())) {
-                        cells.add(clientPackage.getEmisor());
-                    }
-
-                    Platform.runLater(() -> {
-                        calcLog.appendText("Paquete recibido del servidor " + clientPackage.getEmisor() + "\n");
-                        calcLog.appendText("Código de operación: " + clientPackage.getOperationCode() + "\n\n");
-                    });
-
-
-                    // Realizar el broadcast menos al emisor
-                    for (int i : cells) {
-                        if (i != clientPackage.getEmisor()) {
-                            try {
-                                Socket socketReceiver = new Socket("localhost", i);
-                                ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
-                                outputStream.writeObject(clientPackage);
+                                outputStream.writeObject(packageData);
                                 System.out.println("Paquete reenviado a " + i);
                                 socketReceiver.close();
                             } catch (ConnectException ignored) {}

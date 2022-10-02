@@ -19,6 +19,7 @@ public class CalculatorController implements Initializable {
     private double number1;
     private String operator = "";
     private boolean start = true;
+    private boolean decimalSeparator = false;
     private static ServerSocket serverSocket;
     private static int portUsed = 6000;
     private static String result = "";
@@ -31,6 +32,7 @@ public class CalculatorController implements Initializable {
 
     @FXML
     private void clearOutput() {
+        decimalSeparator = false;
         output.setText("0.0");
         start = true;
         operator = "";
@@ -43,16 +45,22 @@ public class CalculatorController implements Initializable {
 
     @FXML
     private void processNumPad(ActionEvent event) {
-        if (start) {
-            output.setText("");
-            start = false;
-        }
         String value = ((Button)event.getSource()).getText();
-        output.setText(output.getText() + value);
+        if (!decimalSeparator || !value.equals(".")) {
+            if (start) {
+                output.setText("");
+                start = false;
+            }
+            if (value.equals(".")) {
+                decimalSeparator = true;
+            }
+            output.setText(output.getText() + value);
+        }
     }
 
     @FXML
-    private void processOperator(ActionEvent event) {
+    private void processOperator(ActionEvent event) throws IOException {
+        decimalSeparator = false;
         if (output.getText().equals("Error"))
             return;
         String value = ((Button)event.getSource()).getText();
@@ -79,7 +87,7 @@ public class CalculatorController implements Initializable {
         }
     }
 
-    static void initializeClients(int port) {
+    void initializeClients(int port) {
         // Tratar de inicializar el cliente en el puerto definido, si ya está usado, pasar al siguiente puerto
         try {
             serverSocket = new ServerSocket(port);
@@ -87,7 +95,7 @@ public class CalculatorController implements Initializable {
         } catch (BindException ex) {
             initializeClients(++portUsed);
         } catch (ConnectException ignored) {
-                System.out.println("Debe correr primero el middleware");
+                calcLog.appendText("Debe correr primero el middleware");
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -105,17 +113,18 @@ public class CalculatorController implements Initializable {
                 try {
                     Socket socket = serverSocket.accept();
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-                    PackageToClient serverPackage = (PackageToClient) inputStream.readObject();
-                    result = String.valueOf(serverPackage.getResult());
-                    Platform.runLater(() -> {
-                        output.setText(result);
-                        calcLog.appendText("Operación procesada por el servidor " + serverPackage.getEmisor() + "\n");
-                        calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
-                        calcLog.appendText("Resultado: " + serverPackage.getResult() + "\n\n");
-                    });
+                    Package serverPackage = (Package) inputStream.readObject();
+                    if (serverPackage.getPackageType() == 'S') {
+                        result = String.valueOf(serverPackage.getResult());
+                        Platform.runLater(() -> {
+                            output.setText(result);
+                            calcLog.appendText("Operación procesada por el servidor " + serverPackage.getEmisor() + "\n");
+                            calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
+                            calcLog.appendText("Resultado: " + serverPackage.getResult() + "\n\n");
+                        });
+                    }
                     inputStream.close();
                     socket.close();
-                } catch (ClassCastException ignored) {
                 } catch (IOException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -123,28 +132,24 @@ public class CalculatorController implements Initializable {
         }).start();
     }
 
-    private static void calculate(double number1, double number2, String op) {
-        PackageToServer packageToSend = new PackageToServer(number1, number2, portUsed);
+    private static void calculate(double number1, double number2, String op) throws IOException {
+        Package packageToServer = new Package('C', portUsed);
+
+        packageToServer.setNum1(number1);
+        packageToServer.setNum2(number2);
 
         switch (op) {
-            case "+" -> packageToSend.setOperationCode(1);
-            case "-" -> packageToSend.setOperationCode(2);
-            case "⨉" -> packageToSend.setOperationCode(3);
-            case "÷" -> packageToSend.setOperationCode(4);
+            case "+" -> packageToServer.setOperationCode(1);
+            case "-" -> packageToServer.setOperationCode(2);
+            case "⨉" -> packageToServer.setOperationCode(3);
+            case "÷" -> packageToServer.setOperationCode(4);
         }
 
         Socket socket;
-        try {
-            socket = new Socket("localhost", 5000);
-            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-            outputStream.writeObject(packageToSend);
-            outputStream.close();
-            socket.close();
-        } catch (ConnectException ignored) {
-            System.out.println("Debe correr primero el middleware");
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        socket = new Socket("localhost", 5000);
+        ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+        outputStream.writeObject(packageToServer);
+        outputStream.close();
+        socket.close();
     }
 }
