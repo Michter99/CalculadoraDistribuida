@@ -9,7 +9,11 @@ public class Package implements Serializable {
     private double num1;
     private double num2;
     private double result;
+    private char lastTypeOfEmisor;
     private char packageType;
+    public String huella;
+    public String evento;
+    public boolean recognizedOp;
 
     public Package(char packageType, int emisor) {
         this.packageType = packageType;
@@ -24,6 +28,9 @@ public class Package implements Serializable {
 
     public void setEmisor(int emisor) { this.emisor = emisor; }
     public int getEmisor() {return emisor;}
+
+    public void setLastTypeOfEmisor(char lastTypeOfEmisor) { this.lastTypeOfEmisor = lastTypeOfEmisor; }
+    public char getLastTypeOfEmisor() { return lastTypeOfEmisor; }
 
     public void setNum1(double num1) { this.num1 = num1; }
     public double getNum1() {return num1;}

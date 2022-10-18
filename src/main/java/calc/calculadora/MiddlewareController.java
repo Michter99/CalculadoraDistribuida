@@ -3,25 +3,29 @@ package calc.calculadora;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ConnectException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URL;
-import java.util.ArrayList;
+import java.net.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /*
-    Middleware  5000 - 5001
-    Servidores  (7000 - 7999)
+    Middleware  (5000 - 5999)
     Clientes    (6000 - 6999)
+    Servidores  (7000 - 7999)
  */
 
 public class MiddlewareController implements Initializable {
+
+    private static ServerSocket middlewareSocket;
+    private static int portUsed = 5000;
+    private static final HashMap<Integer, Character> connections = new HashMap<>();
+    public Label nodeName;
 
     @FXML
     private TextArea calcLog;
@@ -29,17 +33,29 @@ public class MiddlewareController implements Initializable {
     @FXML
     private void clearLog() {
         calcLog.setText("");
+        for (Map.Entry<Integer, Character> connection: connections.entrySet()) {
+            System.out.println(connection.getKey());
+        }
     }
 
-    private static ServerSocket middlewareSocketToServer;
-    private static final ArrayList<Integer> cells = new ArrayList<>();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        try {
-            middlewareSocketToServer = new ServerSocket(5000);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        while (true) {
+            try {
+                middlewareSocket = new ServerSocket(portUsed);
+                nodeName.setText("Node " + portUsed);
+                for (Map.Entry<Integer, Character> connection: connections.entrySet()) {
+                    Socket initialSocket = new Socket("localhost", connection.getKey());
+                    ObjectOutputStream outputStream = new ObjectOutputStream(initialSocket.getOutputStream());
+                    outputStream.writeObject(new Package('M', portUsed));
+                    initialSocket.close();
+                }
+                break;
+            } catch (Exception ex) {
+                connections.put(portUsed, 'M');
+                portUsed++;
+            }
         }
         receiveAndResendPackage();
     }
@@ -48,36 +64,45 @@ public class MiddlewareController implements Initializable {
         new Thread(() -> {
             while (true) {
                 try {
-                    Socket socket = middlewareSocketToServer.accept();
+                    Socket socket = middlewareSocket.accept();
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                     Package packageData = (Package) inputStream.readObject();
-
                     socket.close();
 
-                    // Analizar la solicitud para ver si el puerto ya se encuentra en la lista de células
-                    if (!cells.contains(packageData.getEmisor())) {
-                        cells.add(packageData.getEmisor());
-                    }
+                    connections.put(packageData.getEmisor(), packageData.getPackageType());
 
-                    Platform.runLater(() -> {
-                        calcLog.appendText("Paquete recibido de " + packageData.getEmisor() + "\n");
-                        calcLog.appendText("Código de operación: " + packageData.getOperationCode() + "\n\n");
-                    });
+                    if (packageData.recognizedOp)
+                        Platform.runLater(() -> {
+                            calcLog.appendText("Paquete recibido de " + packageData.getEmisor() + "\n");
+                            calcLog.appendText("Código de operación: " + packageData.getOperationCode() + "\n\n");
+                        });
 
 
-                    // Realizar el broadcast menos al emisor
-                    for (int i : cells) {
-                        if (i != packageData.getEmisor()) {
+                    // Realizar el broadcast menos al emisor, itirando por el diccionario de puertos conectados
+                    for (Map.Entry<Integer, Character> connection: connections.entrySet()) {
+                        if (connection.getKey() != packageData.getEmisor()) {
                             try {
-                                Socket socketReceiver = new Socket("localhost", i);
-                                ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
-                                outputStream.writeObject(packageData);
-                                System.out.println("Paquete reenviado a " + i);
-                                socketReceiver.close();
+                                if (packageData.getLastTypeOfEmisor() != 'M' && connection.getValue() == 'M') {
+                                    Socket socketReceiver = new Socket("localhost", connection.getKey());
+                                    ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
+                                    char tempLastEmisor = packageData.getLastTypeOfEmisor();
+                                    packageData.setLastTypeOfEmisor('M');
+                                    outputStream.writeObject(packageData);
+                                    packageData.setLastTypeOfEmisor(tempLastEmisor);
+                                    socketReceiver.close();
+                                } else if (connection.getValue() != 'M') {
+                                    Socket socketReceiver = new Socket("localhost", connection.getKey());
+                                    ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
+                                    char tempLastEmisor = packageData.getLastTypeOfEmisor();
+                                    packageData.setLastTypeOfEmisor('M');
+                                    outputStream.writeObject(packageData);
+                                    packageData.setLastTypeOfEmisor(tempLastEmisor);
+                                    socketReceiver.close();
+                                }
                             } catch (ConnectException ignored) {}
                         }
                     }
-                } catch (IOException | ClassNotFoundException e ) {
+                } catch (IOException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
             }
