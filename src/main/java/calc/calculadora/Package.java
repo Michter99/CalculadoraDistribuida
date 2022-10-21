@@ -11,9 +11,9 @@ public class Package implements Serializable {
     private double result;
     private char lastTypeOfEmisor;
     private char packageType;
-    public String huella;
-    public String evento;
-    public boolean recognizedOp;
+    private String event;
+    private String footprint;
+    private boolean recognizedOp;
 
     public Package(char packageType, int emisor) {
         this.packageType = packageType;
@@ -41,4 +41,12 @@ public class Package implements Serializable {
     public void setResult(double result) { this.result = result; }
     public double getResult() {return result; }
 
+    public void setEvent(String event) {this.event = event; }
+    public String getEvent() {return event; }
+
+    public void setFootprint(String footprint) { this.footprint = footprint; }
+    public String getFootprint() { return footprint; }
+
+    public void setRecognizedOp(boolean recognizedOp) {this.recognizedOp = recognizedOp; }
+    public boolean isRecognizedOp() {return recognizedOp; }
 }

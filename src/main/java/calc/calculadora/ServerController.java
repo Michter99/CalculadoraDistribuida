@@ -22,8 +22,10 @@ public class ServerController implements Initializable {
     }
 
     private static ServerSocket serverSocket;
-    static int portUsed = 7000;
-    String eventoAnterior = "";
+    private static int portUsed = 7000;
+    private static int connectedNode = 5000;
+    private static String footprint = "";
+    
 
     void receivePackage() {
         new Thread(() -> {
@@ -31,15 +33,12 @@ public class ServerController implements Initializable {
                 try {
                     Socket socket = serverSocket.accept();
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-                    Package serverPackage = (Package) inputStream.readObject();
-                    if (serverPackage.getPackageType() == 'C' && serverPackage.recognizedOp && !eventoAnterior.equals(serverPackage.evento)) {
-                        processOperation(serverPackage);
-                    } else if (serverPackage.getPackageType() == 'C') {
-                        serverPackage.huella = String.valueOf(portUsed);
-                        serverPackage.setPackageType('S');
-                        serverPackage.setEmisor(portUsed);
-                        serverPackage.setLastTypeOfEmisor('S');
-                        sendProcessedPackage(serverPackage);
+                    Package clientPackage = (Package) inputStream.readObject();
+                    if (clientPackage.getPackageType() == 'C') {
+                        if (clientPackage.isRecognizedOp())
+                            processOperation(clientPackage);
+                        else
+                                sendProcessedPackage(clientPackage);
                     }
                     inputStream.close();
                     socket.close();
@@ -71,61 +70,54 @@ public class ServerController implements Initializable {
             default -> "";
         };
 
-        if (!eventoAnterior.equals(receivedPackage.evento)) {
-            Platform.runLater(() -> {
-                calcLog.appendText("Solicitud procesada por el servidor " + portUsed + "\n");
-                calcLog.appendText("Código de operación: " + op + "\n");
-                calcLog.appendText(number1 + " " + operator + " " + number2 + " = " + result + "\n\n");
-            });
-        }
-
-        eventoAnterior = receivedPackage.evento;
+        Platform.runLater(() -> {
+            calcLog.appendText("Solicitud procesada por el servidor " + portUsed + "\n");
+            calcLog.appendText("Código de operación: " + op + "\n");
+            calcLog.appendText(number1 + " " + operator + " " + number2 + " = " + result + "\n\n");
+        });
 
         receivedPackage.setResult(result);
-        receivedPackage.setPackageType('S');
-        receivedPackage.setEmisor(portUsed);
-        receivedPackage.setLastTypeOfEmisor('S');
-        receivedPackage.huella = String.valueOf(portUsed);
-
         sendProcessedPackage(receivedPackage);
     }
 
-    void sendProcessedPackage(Package packageToClient) {
-        int nodePort = 5000;
+    static void sendProcessedPackage(Package packageToClient) throws IOException {
         while (true) {
             try {
-                Socket socketSender = new Socket("localhost", nodePort);
+                packageToClient.setPackageType('S');
+                packageToClient.setLastTypeOfEmisor('S');
+                packageToClient.setEmisor(portUsed);
+                packageToClient.setFootprint(footprint);
+                Socket socketSender = new Socket("localhost", connectedNode);
                 ObjectOutputStream outputStream = new ObjectOutputStream(socketSender.getOutputStream());
                 outputStream.writeObject(packageToClient);
                 socketSender.close();
-                nodePort++;
-            } catch (ConnectException e) {
-                if (nodePort == 5020) // Limite de 20 nodos
-                    break;
-                nodePort++;
-            } catch (IOException ignored) {}
+                break;
+            } catch (ConnectException ignored) {
+                connectedNode++;
+                if (connectedNode == 5020)
+                    connectedNode = 5000;
+            }
         }
     }
 
-    void initializeServer() {
-        // Tratar de inicializar el servidor en el puerto definido, si ya está usado, pasar al siguiente puerto
+    void initializeServers() {
         while (true) {
             try {
                 serverSocket = new ServerSocket(portUsed);
+                footprint = String.valueOf(portUsed);
                 Package temp = new Package('S', portUsed);
-                temp.setLastTypeOfEmisor('S');
                 temp.setOperationCode(0);
-                sendProcessedPackage(temp); // Enviar un paquete al middleware para añadir su puerto a la lista de células
+                sendProcessedPackage(temp);
                 break;
-            } catch (BindException ex) {
+            } catch (Exception ex) {
                 portUsed++;
-            } catch (IOException ignored) {}
+            }
         }
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        initializeServer();
+        initializeServers();
         receivePackage();
     }
 }

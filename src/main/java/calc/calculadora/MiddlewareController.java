@@ -3,29 +3,24 @@ package calc.calculadora;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.ConnectException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URL;
+import java.util.HashSet;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 /*
-    Middleware  (5000 - 5999)
-    Clientes    (6000 - 6999)
+    Middleware  5000 - 5001
     Servidores  (7000 - 7999)
+    Clientes    (6000 - 6999)
  */
 
 public class MiddlewareController implements Initializable {
-
-    private static ServerSocket middlewareSocket;
-    private static int portUsed = 5000;
-    private static final HashMap<Integer, Character> connections = new HashMap<>();
-    public Label nodeName;
 
     @FXML
     private TextArea calcLog;
@@ -33,31 +28,36 @@ public class MiddlewareController implements Initializable {
     @FXML
     private void clearLog() {
         calcLog.setText("");
-        for (Map.Entry<Integer, Character> connection: connections.entrySet()) {
-            System.out.println(connection.getKey());
-        }
     }
 
+    private static ServerSocket middlewareSocket;
+    private static int portUsed = 5000;
+    private static final Set<Integer> cells = new HashSet<>();
+    private static final Set<Integer> nodes = new HashSet<>();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        initializeMiddlewares();
+        receiveAndResendPackage();
+    }
+
+    private void initializeMiddlewares() {
         while (true) {
             try {
                 middlewareSocket = new ServerSocket(portUsed);
-                nodeName.setText("Node " + portUsed);
-                for (Map.Entry<Integer, Character> connection: connections.entrySet()) {
-                    Socket initialSocket = new Socket("localhost", connection.getKey());
-                    ObjectOutputStream outputStream = new ObjectOutputStream(initialSocket.getOutputStream());
+                for (int port : nodes) {
+                    Socket socket = new Socket("localhost", port);
+                    ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
                     outputStream.writeObject(new Package('M', portUsed));
-                    initialSocket.close();
+                    socket.close();
                 }
                 break;
-            } catch (Exception ex) {
-                connections.put(portUsed, 'M');
+            } catch (Exception e) {
+                nodes.add(portUsed);
                 portUsed++;
             }
+
         }
-        receiveAndResendPackage();
     }
 
     void receiveAndResendPackage() {
@@ -69,40 +69,55 @@ public class MiddlewareController implements Initializable {
                     Package packageData = (Package) inputStream.readObject();
                     socket.close();
 
-                    connections.put(packageData.getEmisor(), packageData.getPackageType());
+                    if (packageData.getPackageType() == 'M')
+                        nodes.add(packageData.getEmisor());
+                    else
+                        cells.add(packageData.getEmisor());
 
-                    if (packageData.recognizedOp)
-                        Platform.runLater(() -> {
-                            calcLog.appendText("Paquete recibido de " + packageData.getEmisor() + "\n");
-                            calcLog.appendText("Código de operación: " + packageData.getOperationCode() + "\n\n");
-                        });
+                    Platform.runLater(() -> {
+                        calcLog.appendText("Paquete recibido de " + packageData.getEmisor() + "\n");
+                        calcLog.appendText("Código de operación: " + packageData.getOperationCode() + "\n\n");
+                    });
 
 
-                    // Realizar el broadcast menos al emisor, itirando por el diccionario de puertos conectados
-                    for (Map.Entry<Integer, Character> connection: connections.entrySet()) {
-                        if (connection.getKey() != packageData.getEmisor()) {
-                            try {
-                                if (packageData.getLastTypeOfEmisor() != 'M' && connection.getValue() == 'M') {
-                                    Socket socketReceiver = new Socket("localhost", connection.getKey());
+                    if (packageData.getLastTypeOfEmisor() == 'M') { // Si viene de nodo, envías a las celulas conectadas
+                        for (int cell : cells) {
+                            if (cell != packageData.getEmisor()) {
+                                try {
+                                    Socket socketReceiver = new Socket("localhost", cell);
                                     ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
-                                    char tempLastEmisor = packageData.getLastTypeOfEmisor();
                                     packageData.setLastTypeOfEmisor('M');
                                     outputStream.writeObject(packageData);
-                                    packageData.setLastTypeOfEmisor(tempLastEmisor);
                                     socketReceiver.close();
-                                } else if (connection.getValue() != 'M') {
-                                    Socket socketReceiver = new Socket("localhost", connection.getKey());
+                                } catch (ConnectException ignored) {}
+                            }
+                        }
+                    } else if (packageData.getPackageType() != 'M') { // Si viene de celulas, envías a celulas y nodos
+                        for (int node : nodes) {
+                            if (node != packageData.getEmisor()) {
+                                try {
+                                    Socket socketReceiver = new Socket("localhost", node);
                                     ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
-                                    char tempLastEmisor = packageData.getLastTypeOfEmisor();
                                     packageData.setLastTypeOfEmisor('M');
                                     outputStream.writeObject(packageData);
-                                    packageData.setLastTypeOfEmisor(tempLastEmisor);
                                     socketReceiver.close();
-                                }
-                            } catch (ConnectException ignored) {}
+                                } catch (ConnectException ignored) {}
+                            }
+                        }
+                        for (int cell : cells) {
+                            if (cell != packageData.getEmisor()) {
+                                try {
+                                    Socket socketReceiver = new Socket("localhost", cell);
+                                    ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
+                                    packageData.setLastTypeOfEmisor('M');
+                                    outputStream.writeObject(packageData);
+                                    socketReceiver.close();
+                                } catch (ConnectException ignored) {}
+                            }
                         }
                     }
-                } catch (IOException | ClassNotFoundException e) {
+
+                } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }

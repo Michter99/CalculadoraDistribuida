@@ -26,11 +26,10 @@ public class CalculatorController implements Initializable {
     private static ServerSocket serverSocket;
     private static int portUsed = 6000;
     private static String result = "";
-    private static String huellaCelula = "";
-    private static final Acuses acusesSum = new Acuses();
-    private static final Acuses acusesRes = new Acuses();
-    private static final Acuses acusesMul = new Acuses();
-    private static final Acuses acusesDiv = new Acuses();
+    private static int connectedNode = 5000;
+    private static String footprint = "";
+    private static final Acuse registroAcuses = new Acuse();
+    private String ultimoEvento = "";
 
     @FXML
     private Label output;
@@ -95,53 +94,36 @@ public class CalculatorController implements Initializable {
         }
     }
 
-    void initializeClient() {
-        // Tratar de inicializar el cliente en el puerto definido, si ya está usado, pasar al siguiente puerto
+    private void initializeClients() {
         while (true) {
             try {
                 serverSocket = new ServerSocket(portUsed);
-                huellaCelula = generateSHA(String.valueOf(portUsed));
-                calculate(0.0, 0.0, "?"); // Enviar un paquete al middleware para añadir su puerto a la lista de células
+                footprint = String.valueOf(portUsed);
+                sendPackage(new Package('C', portUsed));
                 break;
-            } catch (BindException ex) {
+            } catch (Exception ex) {
                 portUsed++;
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
             }
         }
     }
 
-    public static String generateSHA(String input) {
-        String sha1="";
-        String value= String.valueOf(input);
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            digest.reset();
-            digest.update(value.getBytes(StandardCharsets.UTF_8));
-            sha1 = String.format("%040x", new BigInteger(1, digest.digest()));
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return sha1;
-    }
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        initializeClient();
+        initializeClients();
         receivePackage();
     }
 
     void receivePackage() {
         new Thread(() -> {
-            String eventoAnterior = "";
             while (true) {
                 try {
                     Socket socket = serverSocket.accept();
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                     Package serverPackage = (Package) inputStream.readObject();
-                    if (!eventoAnterior.equals(serverPackage.evento)) {
-                        if (serverPackage.getPackageType() == 'S' && serverPackage.getOperationCode() != 0) {
-                            if (serverPackage.recognizedOp) {
+                    if (serverPackage.getPackageType() == 'S' && serverPackage.getOperationCode() != 0) {
+                        if (!ultimoEvento.equals(serverPackage.getEvent())) {
+                            if (serverPackage.isRecognizedOp()) {
+                                ultimoEvento = serverPackage.getEvent();
                                 result = String.valueOf(serverPackage.getResult());
                                 Platform.runLater(() -> {
                                     output.setText(result);
@@ -149,15 +131,8 @@ public class CalculatorController implements Initializable {
                                     calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
                                     calcLog.appendText("Resultado: " + serverPackage.getResult() + "\n\n");
                                 });
-                                eventoAnterior = serverPackage.evento;
-                            } else { // Si no se ha cumplido el mínimo de acuses, reenviar paquete
-                                // TimeUnit.SECONDS.sleep(1);
-                                switch (serverPackage.getOperationCode()) {
-                                    case 1 -> acusesSum.verificaAcuse(serverPackage);
-                                    case 2 -> acusesRes.verificaAcuse(serverPackage);
-                                    case 3 -> acusesMul.verificaAcuse(serverPackage);
-                                    case 4 -> acusesDiv.verificaAcuse(serverPackage);
-                                }
+                            } else {
+                                registroAcuses.verificaAcuses(serverPackage);
                                 sendPackage(serverPackage);
                             }
                         }
@@ -176,83 +151,80 @@ public class CalculatorController implements Initializable {
 
         packageToServer.setNum1(number1);
         packageToServer.setNum2(number2);
-        packageToServer.setLastTypeOfEmisor('C');
-        packageToServer.huella = huellaCelula;
-        packageToServer.evento = generateSHA(System.currentTimeMillis() + huellaCelula);
-        packageToServer.recognizedOp = false;
+        packageToServer.setEvent(generateSHA(System.currentTimeMillis() + footprint));
+        packageToServer.setRecognizedOp(false);
 
         switch (op) {
             case "+" -> packageToServer.setOperationCode(1);
             case "-" -> packageToServer.setOperationCode(2);
             case "⨉" -> packageToServer.setOperationCode(3);
             case "÷" -> packageToServer.setOperationCode(4);
-            default -> packageToServer.setOperationCode(0);
         }
 
-        int nodePort = 5000;
+        try {
+            sendPackage(packageToServer);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    private static void sendPackage(Package packageToServer) throws IOException {
         while (true) {
             try {
-                Socket socket = new Socket("localhost", nodePort);
+                packageToServer.setLastTypeOfEmisor('C');
+                packageToServer.setFootprint(footprint);
+                packageToServer.setPackageType('C');
+                packageToServer.setEmisor(portUsed);
+                Socket socket = new Socket("localhost", connectedNode);
                 ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
                 outputStream.writeObject(packageToServer);
                 outputStream.close();
                 socket.close();
-                nodePort++;
+                break;
             } catch (ConnectException e) {
-                if (nodePort == 5020) // Limite de 20 nodos
-                    break;
-                nodePort++;
-            } catch (IOException ignored) {}
+                connectedNode++;
+                if (connectedNode == 5020)
+                    connectedNode = 5000;
+            }
         }
     }
 
-    public static void sendPackage(Package packageToSend) {
-        int nodePort = 5000;
-        while (true) {
-            try {
-                Socket socket = new Socket("localhost", nodePort);
-                ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-                packageToSend.setLastTypeOfEmisor('C');
-                packageToSend.setEmisor(portUsed);
-                packageToSend.setPackageType('C');
-                packageToSend.huella = huellaCelula;
-                outputStream.writeObject(packageToSend);
-                outputStream.close();
-                socket.close();
-                nodePort++;
-            } catch (ConnectException e) {
-                if (nodePort == 5020) // Limite de 20 nodos
-                    break;
-                nodePort++;
-            } catch (IOException ignored) {}
+    public static String generateSHA(String input) {
+        String sha1="";
+        String value= String.valueOf(input);
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            digest.reset();
+            digest.update(value.getBytes(StandardCharsets.UTF_8));
+            sha1 = String.format("%040x", new BigInteger(1, digest.digest()));
+        } catch (Exception e){
+            e.printStackTrace();
         }
+        return sha1;
     }
 }
 
+class Acuse {
 
-class Acuses {
+    // hashmap -> {evento: [huellas]}
+    HashMap<String, HashSet<String>> acuses = new HashMap<>();
 
-    public record registroAcuse(int operationCode, double num1, double num2, Set<String> huellas){}
-    public HashMap<String, registroAcuse> tuplas = new HashMap<>();
-
-    public boolean verificaAcuse(Package serverPackage) {
-        if (tuplas.containsKey(serverPackage.evento)) {
-            tuplas.get(serverPackage.evento).huellas.add(serverPackage.huella);
-            if (tuplas.get(serverPackage.evento).operationCode == 1 && tuplas.get(serverPackage.evento).huellas.size() >= 3 ||  // 3 servidores suma
-                tuplas.get(serverPackage.evento).operationCode == 2 && tuplas.get(serverPackage.evento).huellas.size() >= 2 ||  // 2 servidores resta
-                tuplas.get(serverPackage.evento).operationCode == 3 && tuplas.get(serverPackage.evento).huellas.size() >= 1 ||  // 1 servidores mult
-                tuplas.get(serverPackage.evento).operationCode == 4 && tuplas.get(serverPackage.evento).huellas.size() >= 2)    // 3 servidores div
+    public void verificaAcuses(Package serverPackage) {
+        String event = serverPackage.getEvent();
+        String footprint = serverPackage.getFootprint();
+        if (acuses.containsKey(serverPackage.getEvent())) {
+            acuses.get(event).add(footprint);
+            if (serverPackage.getOperationCode() == 1 && acuses.get(event).size() >= 3 ||
+                serverPackage.getOperationCode() == 2 && acuses.get(event).size() >= 2 ||
+                serverPackage.getOperationCode() == 3 && acuses.get(event).size() >= 1 ||
+                serverPackage.getOperationCode() == 4 && acuses.get(event).size() >= 2)
             {
-                serverPackage.recognizedOp = true;
-                tuplas.remove(serverPackage.evento);
-                return true;
+                serverPackage.setRecognizedOp(true);
+                acuses.remove(event);
             }
-            serverPackage.recognizedOp = false;
-            return false;
         } else {
-            tuplas.put(serverPackage.evento, new registroAcuse(serverPackage.getOperationCode(), serverPackage.getNum1(), serverPackage.getNum2(), new HashSet<>()));
-            return verificaAcuse(serverPackage);
+            acuses.put(event, new HashSet<>(Collections.singletonList(footprint)));
+            verificaAcuses(serverPackage);
         }
     }
 
