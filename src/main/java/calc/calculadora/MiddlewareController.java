@@ -3,6 +3,7 @@ package calc.calculadora;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -22,6 +23,8 @@ import java.util.Set;
 
 public class MiddlewareController implements Initializable {
 
+    @FXML
+    public Label nodeName;
     @FXML
     private TextArea calcLog;
 
@@ -45,6 +48,7 @@ public class MiddlewareController implements Initializable {
         while (true) {
             try {
                 middlewareSocket = new ServerSocket(portUsed);
+                nodeName.setText("Node " +  portUsed);
                 for (int port : nodes) {
                     Socket socket = new Socket("localhost", port);
                     ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
@@ -56,7 +60,6 @@ public class MiddlewareController implements Initializable {
                 nodes.add(portUsed);
                 portUsed++;
             }
-
         }
     }
 
@@ -74,6 +77,7 @@ public class MiddlewareController implements Initializable {
                     else
                         cells.add(packageData.getEmisor());
 
+                    //if (packageData.isRecognizedOp())
                     Platform.runLater(() -> {
                         calcLog.appendText("Paquete recibido de " + packageData.getEmisor() + "\n");
                         calcLog.appendText("Código de operación: " + packageData.getOperationCode() + "\n\n");

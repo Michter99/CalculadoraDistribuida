@@ -7,8 +7,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
@@ -28,8 +26,11 @@ public class CalculatorController implements Initializable {
     private static String result = "";
     private static int connectedNode = 5000;
     private static String footprint = "";
-    private static final Acuse registroAcuses = new Acuse();
-    private String ultimoEvento = "";
+    private static final ArrayList<Package> sumas =  new ArrayList<>();
+    private static final ArrayList<Package> restas = new ArrayList<>();
+    private static final ArrayList<Package> mults = new ArrayList<>();
+    private static final ArrayList<Package> divs = new ArrayList<>();
+    private static final HashMap<String, Set<String>> acuses = new HashMap<>();
 
     @FXML
     private Label output;
@@ -121,26 +122,61 @@ public class CalculatorController implements Initializable {
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                     Package serverPackage = (Package) inputStream.readObject();
                     if (serverPackage.getPackageType() == 'S' && serverPackage.getOperationCode() != 0) {
-                        if (!ultimoEvento.equals(serverPackage.getEvent())) {
-                            if (serverPackage.isRecognizedOp()) {
-                                ultimoEvento = serverPackage.getEvent();
-                                result = String.valueOf(serverPackage.getResult());
-                                Platform.runLater(() -> {
-                                    output.setText(result);
-                                    calcLog.appendText("Operación procesada por el servidor " + serverPackage.getEmisor() + "\n");
-                                    calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
-                                    calcLog.appendText("Resultado: " + serverPackage.getResult() + "\n\n");
-                                });
-                            } else {
-                                registroAcuses.verificaAcuses(serverPackage);
-                                sendPackage(serverPackage);
-                            }
+                        agregaAcuse(serverPackage);
+                        if (verificaAcuse(serverPackage)) {
+                            sendRecognizedOperations(serverPackage.getOperationCode());
+                        } else if (!serverPackage.isRecognizedOp()) {
+                            sendPackage(serverPackage);
+                        }
+                        if (serverPackage.isProccesedByServer()) {
+                            result = String.valueOf(serverPackage.getResult());
+                            Platform.runLater(() -> {
+                                output.setText(result);
+                                calcLog.appendText("Operación procesada por el servidor " + serverPackage.getEmisor() + "\n");
+                                calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
+                                calcLog.appendText("Resultado: " + serverPackage.getResult() + "\n\n");
+                            });
                         }
                     }
                     inputStream.close();
                     socket.close();
-                } catch (IOException | ClassNotFoundException e) {
+                } catch (Exception e) {
                     throw new RuntimeException(e);
+                }
+            }
+        }).start();
+    }
+
+    private static void sendRecognizedOperations(int operationCode) {
+        new Thread(() -> {
+            switch (operationCode) {
+                case 1 -> {
+                    for (Package packageToServer : sumas) {
+                        packageToServer.setRecognizedOp(true);
+                        sendPackage(packageToServer);
+                    }
+                    sumas.clear();
+                }
+                case 2 -> {
+                    for (Package packageToServer : restas) {
+                        packageToServer.setRecognizedOp(true);
+                        sendPackage(packageToServer);
+                    }
+                    restas.clear();
+                }
+                case 3 -> {
+                    for (Package packageToServer : mults) {
+                        packageToServer.setRecognizedOp(true);
+                        sendPackage(packageToServer);
+                    }
+                    mults.clear();
+                }
+                case 4 -> {
+                    for (Package packageToServer : divs) {
+                        packageToServer.setRecognizedOp(true);
+                        sendPackage(packageToServer);
+                    }
+                    divs.clear();
                 }
             }
         }).start();
@@ -161,32 +197,37 @@ public class CalculatorController implements Initializable {
             case "÷" -> packageToServer.setOperationCode(4);
         }
 
-        try {
-            sendPackage(packageToServer);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        switch (packageToServer.getOperationCode()) {
+            case 1 -> sumas.add(packageToServer);
+            case 2 -> restas.add(packageToServer);
+            case 3 -> mults.add(packageToServer);
+            case 4 -> divs.add(packageToServer);
         }
+
+        sendPackage(packageToServer);
     }
 
-    private static void sendPackage(Package packageToServer) throws IOException {
-        while (true) {
-            try {
-                packageToServer.setLastTypeOfEmisor('C');
-                packageToServer.setFootprint(footprint);
-                packageToServer.setPackageType('C');
-                packageToServer.setEmisor(portUsed);
-                Socket socket = new Socket("localhost", connectedNode);
-                ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-                outputStream.writeObject(packageToServer);
-                outputStream.close();
-                socket.close();
-                break;
-            } catch (ConnectException e) {
-                connectedNode++;
-                if (connectedNode == 5020)
-                    connectedNode = 5000;
+    static void sendPackage(Package packageToServer) {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    packageToServer.setLastTypeOfEmisor('C');
+                    packageToServer.setFootprint(footprint);
+                    packageToServer.setPackageType('C');
+                    packageToServer.setEmisor(portUsed);
+                    Socket socket = new Socket("localhost", connectedNode);
+                    ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+                    outputStream.writeObject(packageToServer);
+                    outputStream.close();
+                    socket.close();
+                    break;
+                } catch (Exception e) {
+                    connectedNode++;
+                    if (connectedNode == 5020)
+                        connectedNode = 5000;
+                }
             }
-        }
+        }).start();
     }
 
     public static String generateSHA(String input) {
@@ -202,30 +243,47 @@ public class CalculatorController implements Initializable {
         }
         return sha1;
     }
-}
 
-class Acuse {
-
-    // hashmap -> {evento: [huellas]}
-    HashMap<String, HashSet<String>> acuses = new HashMap<>();
-
-    public void verificaAcuses(Package serverPackage) {
-        String event = serverPackage.getEvent();
-        String footprint = serverPackage.getFootprint();
-        if (acuses.containsKey(serverPackage.getEvent())) {
-            acuses.get(event).add(footprint);
-            if (serverPackage.getOperationCode() == 1 && acuses.get(event).size() >= 3 ||
-                serverPackage.getOperationCode() == 2 && acuses.get(event).size() >= 2 ||
-                serverPackage.getOperationCode() == 3 && acuses.get(event).size() >= 1 ||
-                serverPackage.getOperationCode() == 4 && acuses.get(event).size() >= 2)
-            {
-                serverPackage.setRecognizedOp(true);
-                acuses.remove(event);
-            }
-        } else {
-            acuses.put(event, new HashSet<>(Collections.singletonList(footprint)));
-            verificaAcuses(serverPackage);
-        }
+    private static void agregaAcuse(Package serverPackage) {
+        if (acuses.containsKey(serverPackage.getEvent()))
+            acuses.get(serverPackage.getEvent()).add(serverPackage.getFootprint());
+        else
+            acuses.put(serverPackage.getEvent(), new HashSet<>(Collections.singletonList(serverPackage.getFootprint())));
     }
 
+    private static boolean verificaAcuse(Package serverPackage) {
+        String event = serverPackage.getEvent();
+        int minSum = 3;
+        int minRes = 2;
+        int minMult = 1;
+        int minDiv = 2;
+
+        switch (serverPackage.getOperationCode()) {
+            case 1:
+                if (acuses.get(event).size() >= minSum) {
+                    serverPackage.setRecognizedOp(true);
+                    return true;
+                }
+                break;
+            case 2:
+                if (acuses.get(event).size() >= minRes) {
+                    serverPackage.setRecognizedOp(true);
+                    return true;
+                }
+                break;
+            case 3:
+                if (acuses.get(event).size() >= minMult) {
+                    serverPackage.setRecognizedOp(true);
+                    return true;
+                }
+                break;
+            case 4:
+                if (acuses.get(event).size() >= minDiv) {
+                    serverPackage.setRecognizedOp(true);
+                    return true;
+                }
+                break;
+        }
+        return false;
+    }
 }

@@ -38,7 +38,7 @@ public class ServerController implements Initializable {
                         if (clientPackage.isRecognizedOp())
                             processOperation(clientPackage);
                         else
-                                sendProcessedPackage(clientPackage);
+                            sendProcessedPackage(clientPackage);
                     }
                     inputStream.close();
                     socket.close();
@@ -77,6 +77,7 @@ public class ServerController implements Initializable {
         });
 
         receivedPackage.setResult(result);
+        receivedPackage.setProccesedByServer(true);
         sendProcessedPackage(receivedPackage);
     }
 

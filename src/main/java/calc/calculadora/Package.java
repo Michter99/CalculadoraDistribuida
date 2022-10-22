@@ -14,6 +14,7 @@ public class Package implements Serializable {
     private String event;
     private String footprint;
     private boolean recognizedOp;
+    private boolean proccesedByServer;
 
     public Package(char packageType, int emisor) {
         this.packageType = packageType;
@@ -49,4 +50,7 @@ public class Package implements Serializable {
 
     public void setRecognizedOp(boolean recognizedOp) {this.recognizedOp = recognizedOp; }
     public boolean isRecognizedOp() {return recognizedOp; }
+
+    public void setProccesedByServer(boolean proccesedByServer) { this.proccesedByServer = proccesedByServer; }
+    public boolean isProccesedByServer() { return proccesedByServer; }
 }
