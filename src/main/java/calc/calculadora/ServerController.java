@@ -5,9 +5,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextArea;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Method;
 import java.net.*;
 import java.util.ResourceBundle;
 
@@ -53,14 +55,19 @@ public class ServerController implements Initializable {
         double number1 = receivedPackage.getNum1();
         double number2 = receivedPackage.getNum2();
         int op = receivedPackage.getOperationCode();
+        double result = 0;
 
-        double result = switch (op) {
-            case 1 -> number1 + number2;
-            case 2 -> number1 - number2;
-            case 3 -> number1 * number2;
-            case 4 -> number1 / number2;
-            default -> 0.0;
-        };
+        try {
+            result = switch (op) {
+                case 1 -> sumMicroService(number1, number2);
+                case 2 -> subMicroService(number1, number2);
+                case 3 -> multMicroService(number1, number2);
+                case 4 -> divMicroService(number1, number2);
+                default -> 0;
+            };
+        } catch (Exception ignored) {
+            receivedPackage.setProccesedByServer(false);
+        }
 
         String operator = switch (op) {
             case 1 -> "+";
@@ -70,15 +77,56 @@ public class ServerController implements Initializable {
             default -> "";
         };
 
+        double finalResult = result;
         Platform.runLater(() -> {
             calcLog.appendText("Solicitud procesada por el servidor " + portUsed + "\n");
             calcLog.appendText("Código de operación: " + op + "\n");
-            calcLog.appendText(number1 + " " + operator + " " + number2 + " = " + result + "\n\n");
+            calcLog.appendText(number1 + " " + operator + " " + number2 + " = " + finalResult + "\n\n");
         });
 
         receivedPackage.setResult(result);
         receivedPackage.setProccesedByServer(true);
         sendProcessedPackage(receivedPackage);
+    }
+
+    private double sumMicroService(double num1, double num2) throws Exception {
+        double result;
+        File dir = new File("D:\\Suma.jar");
+        Class<?> cls = new URLClassLoader(new URL[] { dir.toURI().toURL() }).loadClass("Suma");
+        Method sumMethod = cls.getMethod("sumar", double.class, double.class);
+        Object objInstance = cls.getDeclaredConstructor().newInstance();
+        result = (double)sumMethod.invoke(objInstance, num1, num2);
+        return result;
+    }
+
+    private double subMicroService(double num1, double num2) throws Exception {
+        double result;
+        File dir = new File("D:\\Resta.jar");
+        Class<?> cls = new URLClassLoader(new URL[] { dir.toURI().toURL() }).loadClass("Resta");
+        Method subMethod = cls.getMethod("restar", double.class, double.class);
+        Object objInstance = cls.getDeclaredConstructor().newInstance();
+        result = (double)subMethod.invoke(objInstance, num1, num2);
+        return result;
+    }
+
+    private double multMicroService(double num1, double num2) throws Exception {
+        double result;
+        File dir = new File("D:\\Multiplicacion.jar");
+        Class<?> cls = new URLClassLoader(new URL[] { dir.toURI().toURL() }).loadClass("Multiplicacion");
+        Method multMethod = cls.getMethod("multiplicar", double.class, double.class);
+        Object objInstance = cls.getDeclaredConstructor().newInstance();
+        result = (double)multMethod.invoke(objInstance, num1, num2);
+        return result;
+    }
+
+    private double divMicroService(double num1, double num2) throws Exception {
+        double result;
+        File dir = new File("D:\\Division.jar");
+        Class<?> cls = new URLClassLoader(new URL[] { dir.toURI().toURL() }).loadClass("Division");
+        Method divMethod = cls.getMethod("dividir", double.class, double.class);
+        Object objInstance = cls.getDeclaredConstructor().newInstance();
+        result = (double)divMethod.invoke(objInstance, num1, num2);
+        return result;
     }
 
     static void sendProcessedPackage(Package packageToClient) throws IOException {

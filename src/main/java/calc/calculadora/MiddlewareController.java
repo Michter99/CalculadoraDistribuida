@@ -77,11 +77,11 @@ public class MiddlewareController implements Initializable {
                     else
                         cells.add(packageData.getEmisor());
 
-                    //if (packageData.isRecognizedOp())
-                    Platform.runLater(() -> {
-                        calcLog.appendText("Paquete recibido de " + packageData.getEmisor() + "\n");
-                        calcLog.appendText("Código de operación: " + packageData.getOperationCode() + "\n\n");
-                    });
+                    if (packageData.isRecognizedOp())
+                        Platform.runLater(() -> {
+                            calcLog.appendText("Paquete recibido de " + packageData.getEmisor() + "\n");
+                            calcLog.appendText("Código de operación: " + packageData.getOperationCode() + "\n\n");
+                        });
 
 
                     if (packageData.getLastTypeOfEmisor() == 'M') { // Si viene de nodo, envías a las celulas conectadas

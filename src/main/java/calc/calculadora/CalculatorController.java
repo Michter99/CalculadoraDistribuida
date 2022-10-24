@@ -40,10 +40,12 @@ public class CalculatorController implements Initializable {
 
     @FXML
     private void clearOutput() {
-        decimalSeparator = false;
-        output.setText("0.0");
-        start = true;
-        operator = "";
+        Platform.runLater(() -> {
+            decimalSeparator = false;
+            output.setText("0.0");
+            start = true;
+            operator = "";
+        });
     }
 
     @FXML
@@ -148,38 +150,36 @@ public class CalculatorController implements Initializable {
     }
 
     private static void sendRecognizedOperations(int operationCode) {
-        new Thread(() -> {
-            switch (operationCode) {
-                case 1 -> {
-                    for (Package packageToServer : sumas) {
-                        packageToServer.setRecognizedOp(true);
-                        sendPackage(packageToServer);
-                    }
-                    sumas.clear();
+        switch (operationCode) {
+            case 1 -> {
+                for (Package packageToServer : sumas) {
+                    packageToServer.setRecognizedOp(true);
+                    sendPackage(packageToServer);
                 }
-                case 2 -> {
-                    for (Package packageToServer : restas) {
-                        packageToServer.setRecognizedOp(true);
-                        sendPackage(packageToServer);
-                    }
-                    restas.clear();
-                }
-                case 3 -> {
-                    for (Package packageToServer : mults) {
-                        packageToServer.setRecognizedOp(true);
-                        sendPackage(packageToServer);
-                    }
-                    mults.clear();
-                }
-                case 4 -> {
-                    for (Package packageToServer : divs) {
-                        packageToServer.setRecognizedOp(true);
-                        sendPackage(packageToServer);
-                    }
-                    divs.clear();
-                }
+                sumas.clear();
             }
-        }).start();
+            case 2 -> {
+                for (Package packageToServer : restas) {
+                    packageToServer.setRecognizedOp(true);
+                    sendPackage(packageToServer);
+                }
+                restas.clear();
+            }
+            case 3 -> {
+                for (Package packageToServer : mults) {
+                    packageToServer.setRecognizedOp(true);
+                    sendPackage(packageToServer);
+                }
+                mults.clear();
+            }
+            case 4 -> {
+                for (Package packageToServer : divs) {
+                    packageToServer.setRecognizedOp(true);
+                    sendPackage(packageToServer);
+                }
+                divs.clear();
+            }
+        }
     }
 
     private static void calculate(double number1, double number2, String op) {
@@ -261,25 +261,21 @@ public class CalculatorController implements Initializable {
         switch (serverPackage.getOperationCode()) {
             case 1:
                 if (acuses.get(event).size() >= minSum) {
-                    serverPackage.setRecognizedOp(true);
                     return true;
                 }
                 break;
             case 2:
                 if (acuses.get(event).size() >= minRes) {
-                    serverPackage.setRecognizedOp(true);
                     return true;
                 }
                 break;
             case 3:
                 if (acuses.get(event).size() >= minMult) {
-                    serverPackage.setRecognizedOp(true);
                     return true;
                 }
                 break;
             case 4:
                 if (acuses.get(event).size() >= minDiv) {
-                    serverPackage.setRecognizedOp(true);
                     return true;
                 }
                 break;
