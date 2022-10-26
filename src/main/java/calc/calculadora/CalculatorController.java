@@ -14,6 +14,7 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class CalculatorController implements Initializable {
 
@@ -21,6 +22,7 @@ public class CalculatorController implements Initializable {
     private String operator = "";
     private boolean start = true;
     private boolean decimalSeparator = false;
+
     private static ServerSocket serverSocket;
     private static int portUsed = 6000;
     private static String result = "";
@@ -30,7 +32,12 @@ public class CalculatorController implements Initializable {
     private static final ArrayList<Package> restas = new ArrayList<>();
     private static final ArrayList<Package> mults = new ArrayList<>();
     private static final ArrayList<Package> divs = new ArrayList<>();
-    private static final HashMap<String, Set<String>> acuses = new HashMap<>();
+    private static final Set<String> acusesSuma = new HashSet<>();
+    private static final Set<String> acusesResta = new HashSet<>();
+    private static final Set<String> acusesMult = new HashSet<>();
+    private static final Set<String> acusesDiv = new HashSet<>();
+    private static final Set<String> eventosEnCiclo = new HashSet<>();
+    private static final Set<String> eventosProcesados = new HashSet<>();
 
     @FXML
     private Label output;
@@ -124,20 +131,24 @@ public class CalculatorController implements Initializable {
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                     Package serverPackage = (Package) inputStream.readObject();
                     if (serverPackage.getPackageType() == 'S' && serverPackage.getOperationCode() != 0) {
-                        agregaAcuse(serverPackage);
-                        if (verificaAcuse(serverPackage)) {
-                            sendRecognizedOperations(serverPackage.getOperationCode());
-                        } else if (!serverPackage.isRecognizedOp()) {
-                            sendPackage(serverPackage);
-                        }
-                        if (serverPackage.isProccesedByServer()) {
+                        if (serverPackage.isProccesedByServer() && !eventosProcesados.contains(serverPackage.getEvent())) {
+                            eventosProcesados.add(serverPackage.getEvent());
                             result = String.valueOf(serverPackage.getResult());
+                            String symbol = switch (serverPackage.getOperationCode()) {
+                                case 1 -> "+";
+                                case 2 -> "-";
+                                case 3 -> "*";
+                                case 4 -> "/";
+                                default -> "";
+                            };
                             Platform.runLater(() -> {
                                 output.setText(result);
-                                calcLog.appendText("Operación procesada por el servidor " + serverPackage.getEmisor() + "\n");
                                 calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
-                                calcLog.appendText("Resultado: " + serverPackage.getResult() + "\n\n");
+                                calcLog.appendText(serverPackage.getNum1() + " " + symbol + " " + serverPackage.getNum2() + " = " + serverPackage.getResult() + "\n\n");
                             });
+                        } else {
+                            addFootprint(serverPackage);
+                            verificaAcuse(serverPackage);
                         }
                     }
                     inputStream.close();
@@ -183,6 +194,11 @@ public class CalculatorController implements Initializable {
     }
 
     private static void calculate(double number1, double number2, String op) {
+        acusesSuma.clear();
+        acusesResta.clear();
+        acusesMult.clear();
+        acusesDiv.clear();
+
         Package packageToServer = new Package('C', portUsed);
 
         packageToServer.setNum1(number1);
@@ -244,42 +260,59 @@ public class CalculatorController implements Initializable {
         return sha1;
     }
 
-    private static void agregaAcuse(Package serverPackage) {
-        if (acuses.containsKey(serverPackage.getEvent()))
-            acuses.get(serverPackage.getEvent()).add(serverPackage.getFootprint());
-        else
-            acuses.put(serverPackage.getEvent(), new HashSet<>(Collections.singletonList(serverPackage.getFootprint())));
+    private static void addFootprint(Package serverPackage) {
+        switch (serverPackage.getOperationCode()) {
+            case 1 -> acusesSuma.add(serverPackage.getFootprint());
+            case 2 -> acusesResta.add(serverPackage.getFootprint());
+            case 3 -> acusesMult.add(serverPackage.getFootprint());
+            case 4 -> acusesDiv.add(serverPackage.getFootprint());
+        }
     }
 
-    private static boolean verificaAcuse(Package serverPackage) {
-        String event = serverPackage.getEvent();
+    private static void verificaAcuse(Package serverPackage) {
         int minSum = 3;
         int minRes = 2;
         int minMult = 1;
         int minDiv = 2;
 
-        switch (serverPackage.getOperationCode()) {
-            case 1:
-                if (acuses.get(event).size() >= minSum) {
-                    return true;
+        int sleepTime = 2;
+
+        if (eventosEnCiclo.contains(serverPackage.getEvent()))
+            return;
+        eventosEnCiclo.add(serverPackage.getEvent());
+        new Thread(() -> {
+            try {
+                switch (serverPackage.getOperationCode()) {
+                    case 1 -> {
+                        while (acusesSuma.size() < minSum) {
+                            TimeUnit.SECONDS.sleep(sleepTime);
+                            sendPackage(serverPackage);
+                        }
+                        sendRecognizedOperations(1);
+                    }
+                    case 2 -> {
+                        while (acusesResta.size() < minRes) {
+                            TimeUnit.SECONDS.sleep(sleepTime);
+                            sendPackage(serverPackage);
+                        }
+                        sendRecognizedOperations(2);
+                    }
+                    case 3 -> {
+                        while (acusesMult.size() < minMult) {
+                            TimeUnit.SECONDS.sleep(sleepTime);
+                            sendPackage(serverPackage);
+                        }
+                        sendRecognizedOperations(3);
+                    }
+                    case 4 -> {
+                        while (acusesDiv.size() < minDiv) {
+                            TimeUnit.SECONDS.sleep(sleepTime);
+                            sendPackage(serverPackage);
+                        }
+                        sendRecognizedOperations(4);
+                    }
                 }
-                break;
-            case 2:
-                if (acuses.get(event).size() >= minRes) {
-                    return true;
-                }
-                break;
-            case 3:
-                if (acuses.get(event).size() >= minMult) {
-                    return true;
-                }
-                break;
-            case 4:
-                if (acuses.get(event).size() >= minDiv) {
-                    return true;
-                }
-                break;
-        }
-        return false;
+            } catch (Exception ignored) {}
+        }).start();
     }
 }

@@ -11,7 +11,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
 import java.net.*;
+import java.util.HashSet;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 public class ServerController implements Initializable {
 
@@ -27,6 +29,7 @@ public class ServerController implements Initializable {
     private static int portUsed = 7000;
     private static int connectedNode = 5000;
     private static String footprint = "";
+    private static final Set<String> processedEvents = new HashSet<>();
     
 
     void receivePackage() {
@@ -37,8 +40,12 @@ public class ServerController implements Initializable {
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                     Package clientPackage = (Package) inputStream.readObject();
                     if (clientPackage.getPackageType() == 'C') {
-                        if (clientPackage.isRecognizedOp())
-                            processOperation(clientPackage);
+                        if (clientPackage.isRecognizedOp()) {
+                            if (!processedEvents.contains(clientPackage.getEvent()))
+                                processOperation(clientPackage);
+                            else
+                                continue;
+                        }
                         else
                             sendProcessedPackage(clientPackage);
                     }
@@ -55,7 +62,7 @@ public class ServerController implements Initializable {
         double number1 = receivedPackage.getNum1();
         double number2 = receivedPackage.getNum2();
         int op = receivedPackage.getOperationCode();
-        double result = 0;
+        double result;
 
         try {
             result = switch (op) {
@@ -65,8 +72,9 @@ public class ServerController implements Initializable {
                 case 4 -> divMicroService(number1, number2);
                 default -> 0;
             };
-        } catch (Exception ignored) {
+        } catch (Exception e) {
             receivedPackage.setProccesedByServer(false);
+            return;
         }
 
         String operator = switch (op) {
@@ -86,6 +94,7 @@ public class ServerController implements Initializable {
 
         receivedPackage.setResult(result);
         receivedPackage.setProccesedByServer(true);
+        processedEvents.add(receivedPackage.getEvent());
         sendProcessedPackage(receivedPackage);
     }
 
@@ -129,24 +138,26 @@ public class ServerController implements Initializable {
         return result;
     }
 
-    static void sendProcessedPackage(Package packageToClient) throws IOException {
-        while (true) {
-            try {
-                packageToClient.setPackageType('S');
-                packageToClient.setLastTypeOfEmisor('S');
-                packageToClient.setEmisor(portUsed);
-                packageToClient.setFootprint(footprint);
-                Socket socketSender = new Socket("localhost", connectedNode);
-                ObjectOutputStream outputStream = new ObjectOutputStream(socketSender.getOutputStream());
-                outputStream.writeObject(packageToClient);
-                socketSender.close();
-                break;
-            } catch (ConnectException ignored) {
-                connectedNode++;
-                if (connectedNode == 5020)
-                    connectedNode = 5000;
+    static void sendProcessedPackage(Package packageToClient) {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    packageToClient.setPackageType('S');
+                    packageToClient.setLastTypeOfEmisor('S');
+                    packageToClient.setEmisor(portUsed);
+                    packageToClient.setFootprint(footprint);
+                    Socket socketSender = new Socket("localhost", connectedNode);
+                    ObjectOutputStream outputStream = new ObjectOutputStream(socketSender.getOutputStream());
+                    outputStream.writeObject(packageToClient);
+                    socketSender.close();
+                    break;
+                } catch (Exception ignored) {
+                    connectedNode++;
+                    if (connectedNode == 5020)
+                        connectedNode = 5000;
+                }
             }
-        }
+        }).start();
     }
 
     void initializeServers() {
@@ -169,4 +180,6 @@ public class ServerController implements Initializable {
         initializeServers();
         receivePackage();
     }
+
+
 }
