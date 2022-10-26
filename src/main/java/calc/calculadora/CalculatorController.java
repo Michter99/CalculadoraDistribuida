@@ -133,19 +133,21 @@ public class CalculatorController implements Initializable {
                     if (serverPackage.getPackageType() == 'S' && serverPackage.getOperationCode() != 0) {
                         if (serverPackage.isProccesedByServer() && !eventosProcesados.contains(serverPackage.getEvent())) {
                             eventosProcesados.add(serverPackage.getEvent());
-                            result = String.valueOf(serverPackage.getResult());
-                            String symbol = switch (serverPackage.getOperationCode()) {
-                                case 1 -> "+";
-                                case 2 -> "-";
-                                case 3 -> "*";
-                                case 4 -> "/";
-                                default -> "";
-                            };
-                            Platform.runLater(() -> {
-                                output.setText(result);
-                                calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
-                                calcLog.appendText(serverPackage.getNum1() + " " + symbol + " " + serverPackage.getNum2() + " = " + serverPackage.getResult() + "\n\n");
-                            });
+                            if (serverPackage.getOriginalEmisor() == portUsed) {
+                                result = String.valueOf(serverPackage.getResult());
+                                String symbol = switch (serverPackage.getOperationCode()) {
+                                    case 1 -> "+";
+                                    case 2 -> "-";
+                                    case 3 -> "*";
+                                    case 4 -> "/";
+                                    default -> "";
+                                };
+                                Platform.runLater(() -> {
+                                    output.setText(result);
+                                    calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
+                                    calcLog.appendText(serverPackage.getNum1() + " " + symbol + " " + serverPackage.getNum2() + " = " + serverPackage.getResult() + "\n\n");
+                                });
+                            }
                         } else {
                             addFootprint(serverPackage);
                             verificaAcuse(serverPackage);
@@ -205,6 +207,7 @@ public class CalculatorController implements Initializable {
         packageToServer.setNum2(number2);
         packageToServer.setEvent(generateSHA(System.currentTimeMillis() + footprint));
         packageToServer.setRecognizedOp(false);
+        packageToServer.setOriginalEmisor(portUsed);
 
         switch (op) {
             case "+" -> packageToServer.setOperationCode(1);

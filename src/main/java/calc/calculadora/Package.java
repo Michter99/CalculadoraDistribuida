@@ -15,6 +15,7 @@ public class Package implements Serializable {
     private String footprint;
     private boolean recognizedOp;
     private boolean proccesedByServer;
+    private int originalEmisor;
 
     public Package(char packageType, int emisor) {
         this.packageType = packageType;
@@ -53,4 +54,7 @@ public class Package implements Serializable {
 
     public void setProccesedByServer(boolean proccesedByServer) { this.proccesedByServer = proccesedByServer; }
     public boolean isProccesedByServer() { return proccesedByServer; }
+
+    public void setOriginalEmisor(int originalEmisor) { this.originalEmisor = originalEmisor; }
+    public int getOriginalEmisor() { return originalEmisor; }
 }
