@@ -3,7 +3,6 @@ package calc.calculadora;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import java.io.File;
 import java.io.ObjectInputStream;
@@ -17,8 +16,6 @@ import java.util.concurrent.TimeUnit;
 
 public class ServerController implements Initializable {
 
-    @FXML
-    public Label labelServer;
     @FXML
     private TextArea calcLog;
 
@@ -187,7 +184,6 @@ public class ServerController implements Initializable {
                 Package temp = new Package('S', portUsed);
                 temp.setOperationCode(0);
                 sendProcessedPackage(temp);
-                Platform.runLater(() -> labelServer.setText("Server " + portUsed));
                 break;
             } catch (Exception ex) {
                 portUsed++;
