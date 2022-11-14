@@ -6,20 +6,20 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="300.0" prefWidth="273.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calc.calculadora.ServerController">
-   <Label fx:id="serverLabel" layoutX="71.0" layoutY="11.0" prefHeight="31.0" prefWidth="132.0" text="Server 7000">
+<AnchorPane prefHeight="300.0" prefWidth="273.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calc.calculadora.ServerController">
+   <Label fx:id="serverLabel" layoutX="70.0" layoutY="12.0" prefHeight="31.0" prefWidth="133.0" style="-fx-font-weight: bold;" text="Server 7000" textFill="#0071dc">
       <font>
          <Font name="Century Gothic" size="24.0" />
       </font>
    </Label>
-   <TextArea fx:id="calcLog" editable="false" layoutX="16.0" layoutY="53.0" prefHeight="187.0" prefWidth="242.0" wrapText="true">
+   <TextArea fx:id="calcLog" editable="false" layoutX="16.0" layoutY="53.0" prefHeight="187.0" prefWidth="242.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" wrapText="true">
       <font>
          <Font name="Century Gothic" size="11.0" />
       </font>
    </TextArea>
-   <Button layoutX="94.0" layoutY="256.0" mnemonicParsing="false" onAction="#clearLog" prefHeight="27.0" prefWidth="85.0" text="Clear Log" textAlignment="CENTER">
+   <Button layoutX="85.0" layoutY="254.0" mnemonicParsing="false" onAction="#clearLog" prefHeight="31.0" prefWidth="103.0" style="-fx-border-color: #0071DC; -fx-background-color: #0071DC; -fx-border-width: 2;" text="CLEAR LOG" textAlignment="CENTER" textFill="WHITE">
       <font>
-         <Font name="Century Gothic" size="14.0" />
+         <Font name="Century Gothic Bold" size="14.0" />
       </font>
    </Button>
 </AnchorPane>
