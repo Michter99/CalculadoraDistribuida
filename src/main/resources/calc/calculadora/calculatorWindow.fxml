@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="333.0" prefWidth="524.0" style="-fx-background-color: #111111;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calc.calculadora.CalculatorController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="333.0" prefWidth="524.0" style="-fx-background-color: #111111;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calc.calculadora.ClientController">
    <TextArea fx:id="calcLog" editable="false" layoutX="238.0" layoutY="25.0" prefHeight="235.0" prefWidth="268.0" wrapText="true">
       <font>
          <Font name="Century Gothic" size="11.0" />

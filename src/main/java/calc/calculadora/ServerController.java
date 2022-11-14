@@ -3,6 +3,7 @@ package calc.calculadora;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import java.io.File;
 import java.io.ObjectInputStream;
@@ -16,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 public class ServerController implements Initializable {
 
+    @FXML
+    public Label serverLabel;
     @FXML
     private TextArea calcLog;
 
@@ -55,11 +58,12 @@ public class ServerController implements Initializable {
                                         new ProcessBuilder("cmd.exe", "/c", "xcopy C:\\CalculadoraServicios\\Server" + portUsed + " C:\\CalculadoraServicios\\Server" + i + " /Y").start();
                                     }
                                 }
+                                TimeUnit.SECONDS.sleep(1);
+                                serverSocket = new ServerSocket(portUsed);
                                 for (int i = 0; i < clientPackage.getCloneNumber(); i++) {
                                     new ProcessBuilder("D:\\cloneServer.bat").start();
                                 }
-                                TimeUnit.SECONDS.sleep(1);
-                                initializeServers();
+                                //initializeServers();
                             } else {
                                 sendProcessedPackage(clientPackage);
                             }
@@ -182,6 +186,7 @@ public class ServerController implements Initializable {
                 serverSocket = new ServerSocket(portUsed);
                 footprint = String.valueOf(portUsed);
                 Package temp = new Package('S', portUsed);
+                Platform.runLater(() -> serverLabel.setText("Server " + portUsed));
                 temp.setOperationCode(0);
                 sendProcessedPackage(temp);
                 break;

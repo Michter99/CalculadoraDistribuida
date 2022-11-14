@@ -16,7 +16,7 @@ import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class CalculatorController implements Initializable {
+public class ClientController implements Initializable {
 
     private double number1;
     private String operator = "";
@@ -284,6 +284,15 @@ public class CalculatorController implements Initializable {
         }
     }
 
+    private static int selectCloningServer(Set<String> acuses) {
+        int valorMin = 65535;
+        for (String acuse : acuses) {
+            if (Integer.parseInt(acuse) < valorMin)
+                valorMin = Integer.parseInt(acuse);
+        }
+        return valorMin;
+    }
+
     private static void verificaAcuse(Package serverPackage) {
         int sleepTime = 1;
 
@@ -297,7 +306,7 @@ public class CalculatorController implements Initializable {
                         while (acusesSuma.size() < minSum) {
                             if (ultimoNumeroAcusesSum == acusesSuma.size()) {
                                 Package clonePackage = new Package('C', portUsed);
-                                clonePackage.setClonePort(Integer.parseInt(acusesSuma.iterator().next()));
+                                clonePackage.setClonePort(selectCloningServer(acusesSuma));
                                 clonePackage.setCloneNumber(minSum - acusesSuma.size());
                                 sendPackage(clonePackage);
                                 break;
@@ -314,7 +323,7 @@ public class CalculatorController implements Initializable {
                         while (acusesResta.size() < minRes) {
                             if (ultimoNumeroAcusesRes == acusesResta.size()) {
                                 Package clonePackage = new Package('C', portUsed);
-                                clonePackage.setClonePort(Integer.parseInt(acusesResta.iterator().next()));
+                                clonePackage.setClonePort(selectCloningServer(acusesResta));
                                 clonePackage.setCloneNumber(minRes - acusesResta.size());
                                 sendPackage(clonePackage);
                                 break;
@@ -331,7 +340,7 @@ public class CalculatorController implements Initializable {
                         while (acusesMult.size() < minMult) {
                             if (ultimoNumeroAcusesMul == acusesMult.size()) {
                                 Package clonePackage = new Package('C', portUsed);
-                                clonePackage.setClonePort(Integer.parseInt(acusesMult.iterator().next()));
+                                clonePackage.setClonePort(selectCloningServer(acusesMult));
                                 clonePackage.setCloneNumber(minMult - acusesMult.size());
                                 sendPackage(clonePackage);
                                 break;
@@ -348,7 +357,7 @@ public class CalculatorController implements Initializable {
                         while (acusesDiv.size() < minDiv) {
                             if (ultimoNumeroAcusesDiv == acusesDiv.size()) {
                                 Package clonePackage = new Package('C', portUsed);
-                                clonePackage.setClonePort(Integer.parseInt(acusesDiv.iterator().next()));
+                                clonePackage.setClonePort(selectCloningServer(acusesDiv));
                                 clonePackage.setCloneNumber(minDiv - acusesDiv.size());
                                 sendPackage(clonePackage);
                                 break;

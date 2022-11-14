@@ -7,7 +7,7 @@
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="300.0" prefWidth="273.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calc.calculadora.ServerController">
-   <Label layoutX="101.0" layoutY="14.0" prefHeight="31.0" prefWidth="71.0" text="Server">
+   <Label fx:id="serverLabel" layoutX="71.0" layoutY="11.0" prefHeight="31.0" prefWidth="132.0" text="Server 7000">
       <font>
          <Font name="Century Gothic" size="24.0" />
       </font>
