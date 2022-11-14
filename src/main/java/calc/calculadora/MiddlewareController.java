@@ -91,6 +91,7 @@ public class MiddlewareController implements Initializable {
                                     Socket socketReceiver = new Socket("localhost", cell);
                                     ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
                                     packageData.setLastTypeOfEmisor('M');
+                                    packageData.setCloneNumber(0);
                                     outputStream.writeObject(packageData);
                                     socketReceiver.close();
                                 } catch (ConnectException ignored) {}

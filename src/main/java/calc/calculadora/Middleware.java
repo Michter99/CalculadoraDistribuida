@@ -12,6 +12,7 @@ public class Middleware extends Application {
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(Middleware.class.getResource("middlewareWindow.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
+        stage.setResizable(false);
         stage.setTitle("Middleware");
         stage.setScene(scene);
         stage.show();

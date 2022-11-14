@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="348.0" prefWidth="523.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calc.calculadora.AdminController">
+    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="242.0" layoutX="30.0" layoutY="70.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="2.0" width="217.0" />
+    <Label layoutX="180.0" layoutY="22.0" style="-fx-font-weight: bold;" text="Administrador" textAlignment="CENTER">
+        <font>
+          <Font name="Century Gothic" size="24.0" />
+        </font>
+    </Label>
+    <Label layoutX="57.0" layoutY="109.0" style="-fx-font-weight: bold;" text="Selecciona el servidor">
+        <font>
+          <Font name="Century Gothic" size="14.0" />
+        </font>
+    </Label>
+    <ChoiceBox fx:id="servidorField" layoutX="56.0" layoutY="127.0" prefHeight="25.0" prefWidth="164.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #000000; -fx-border-width: 2;" />
+    <Label layoutX="57.0" layoutY="176.0" style="-fx-font-weight: bold;" text="Selecciona el servicio">
+        <font>
+          <Font name="Century Gothic" size="14.0" />
+        </font>
+    </Label>
+    <ChoiceBox fx:id="microField" layoutX="56.0" layoutY="194.0" prefHeight="25.0" prefWidth="164.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #000000; -fx-border-width: 2;" />
+    <Button layoutX="71.0" layoutY="246.0" mnemonicParsing="false" onAction="#inyectarServicio" style="-fx-background-radius: 0; -fx-background-color: #000000; -fx-font-weight: bold;" text="INYECTAR SERVICIO" textFill="WHITE" />
+    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="242.0" layoutX="276.0" layoutY="70.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="2.0" width="217.0" />
+    <Label layoutX="300.0" layoutY="107.0" style="-fx-font-weight: bold;" text="Sum">
+        <font>
+          <Font name="Century Gothic" size="14.0" />
+        </font>
+    </Label>
+    <Label layoutX="397.0" layoutY="107.0" style="-fx-font-weight: bold;" text="Res">
+        <font>
+          <Font name="Century Gothic" size="14.0" />
+        </font>
+    </Label>
+    <TextField fx:id="sumAcuse" layoutX="299.0" layoutY="125.0" maxHeight="25.0" maxWidth="75.0" minHeight="10.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #000000; -fx-border-width: 2;" text="1">
+        <font>
+          <Font name="Century Gothic" size="12.0" />
+        </font>
+    </TextField>
+    <TextField fx:id="resAcuse" layoutX="396.0" layoutY="125.0" maxHeight="25.0" maxWidth="75.0" minHeight="10.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #000000; -fx-border-width: 2;" text="1">
+        <font>
+          <Font name="Century Gothic" size="12.0" />
+        </font>
+    </TextField>
+    <Label layoutX="299.0" layoutY="173.0" style="-fx-font-weight: bold;" text="Mult">
+        <font>
+          <Font name="Century Gothic" size="14.0" />
+        </font>
+    </Label>
+    <TextField fx:id="multAcuse" layoutX="298.0" layoutY="191.0" maxHeight="25.0" maxWidth="75.0" minHeight="10.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #000000; -fx-border-width: 2;" text="1">
+        <font>
+          <Font name="Century Gothic" size="12.0" />
+        </font>
+    </TextField>
+    <Label layoutX="396.0" layoutY="173.0" style="-fx-font-weight: bold;" text="Div">
+        <font>
+          <Font name="Century Gothic" size="14.0" />
+        </font>
+    </Label>
+    <TextField fx:id="divAcuse" layoutX="395.0" layoutY="191.0" maxHeight="25.0" maxWidth="75.0" minHeight="10.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #000000; -fx-border-width: 2;" text="1">
+        <font>
+          <Font name="Century Gothic" size="12.0" />
+        </font>
+    </TextField>
+    <Button layoutX="314.0" layoutY="246.0" maxHeight="10.0" mnemonicParsing="false" onAction="#configurarAcuses" style="-fx-background-radius: 0; -fx-background-color: #000000; -fx-font-weight: bold;" text="CONFIGURAR ACUSES" textFill="WHITE" />
+</AnchorPane>

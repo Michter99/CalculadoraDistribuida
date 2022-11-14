@@ -3,10 +3,9 @@ package calc.calculadora;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-
 import java.io.File;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
@@ -14,9 +13,12 @@ import java.net.*;
 import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class ServerController implements Initializable {
 
+    @FXML
+    public Label labelServer;
     @FXML
     private TextArea calcLog;
 
@@ -30,7 +32,7 @@ public class ServerController implements Initializable {
     private static int connectedNode = 5000;
     private static String footprint = "";
     private static final Set<String> processedEvents = new HashSet<>();
-    
+
 
     void receivePackage() {
         new Thread(() -> {
@@ -40,25 +42,42 @@ public class ServerController implements Initializable {
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                     Package clientPackage = (Package) inputStream.readObject();
                     if (clientPackage.getPackageType() == 'C') {
+
                         if (clientPackage.isRecognizedOp()) {
                             if (!processedEvents.contains(clientPackage.getEvent()))
                                 processOperation(clientPackage);
                             else
                                 continue;
                         }
-                        else
-                            sendProcessedPackage(clientPackage);
+                        else {
+                            if (clientPackage.getClonePort() == portUsed && !clientPackage.isRecognizedOp()) {
+                                serverSocket.close();
+                                for (int i = 7000; i <= 7004; i++) {
+                                    if (i != portUsed) {
+                                        new ProcessBuilder("cmd.exe", "/c", "del /S /Q C:\\CalculadoraServicios\\Server" + i + "\\*").start();
+                                        new ProcessBuilder("cmd.exe", "/c", "xcopy C:\\CalculadoraServicios\\Server" + portUsed + " C:\\CalculadoraServicios\\Server" + i + " /Y").start();
+                                    }
+                                }
+                                for (int i = 0; i < clientPackage.getCloneNumber(); i++) {
+                                    new ProcessBuilder("D:\\cloneServer.bat").start();
+                                }
+                                TimeUnit.SECONDS.sleep(1);
+                                initializeServers();
+                            } else {
+                                sendProcessedPackage(clientPackage);
+                            }
+                        }
                     }
                     inputStream.close();
                     socket.close();
-                } catch (IOException | ClassNotFoundException e) {
+                } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }
         }).start();
     }
 
-    void processOperation(Package receivedPackage) throws IOException {
+    void processOperation(Package receivedPackage) {
         double number1 = receivedPackage.getNum1();
         double number2 = receivedPackage.getNum2();
         int op = receivedPackage.getOperationCode();
@@ -100,7 +119,7 @@ public class ServerController implements Initializable {
 
     private double sumMicroService(double num1, double num2) throws Exception {
         double result;
-        File dir = new File("D:\\Suma.jar");
+        File dir = new File("C:\\CalculadoraServicios\\Server" + portUsed + "\\Suma.jar");
         Class<?> cls = new URLClassLoader(new URL[] { dir.toURI().toURL() }).loadClass("Suma");
         Method sumMethod = cls.getMethod("sumar", double.class, double.class);
         Object objInstance = cls.getDeclaredConstructor().newInstance();
@@ -110,7 +129,7 @@ public class ServerController implements Initializable {
 
     private double subMicroService(double num1, double num2) throws Exception {
         double result;
-        File dir = new File("D:\\Resta.jar");
+        File dir = new File("C:\\CalculadoraServicios\\Server" + portUsed + "\\Resta.jar");
         Class<?> cls = new URLClassLoader(new URL[] { dir.toURI().toURL() }).loadClass("Resta");
         Method subMethod = cls.getMethod("restar", double.class, double.class);
         Object objInstance = cls.getDeclaredConstructor().newInstance();
@@ -120,7 +139,7 @@ public class ServerController implements Initializable {
 
     private double multMicroService(double num1, double num2) throws Exception {
         double result;
-        File dir = new File("D:\\Multiplicacion.jar");
+        File dir = new File("C:\\CalculadoraServicios\\Server" + portUsed + "\\Multiplicacion.jar");
         Class<?> cls = new URLClassLoader(new URL[] { dir.toURI().toURL() }).loadClass("Multiplicacion");
         Method multMethod = cls.getMethod("multiplicar", double.class, double.class);
         Object objInstance = cls.getDeclaredConstructor().newInstance();
@@ -130,7 +149,7 @@ public class ServerController implements Initializable {
 
     private double divMicroService(double num1, double num2) throws Exception {
         double result;
-        File dir = new File("D:\\Division.jar");
+        File dir = new File("C:\\CalculadoraServicios\\Server" + portUsed + "\\Division.jar");
         Class<?> cls = new URLClassLoader(new URL[] { dir.toURI().toURL() }).loadClass("Division");
         Method divMethod = cls.getMethod("dividir", double.class, double.class);
         Object objInstance = cls.getDeclaredConstructor().newInstance();
@@ -168,6 +187,7 @@ public class ServerController implements Initializable {
                 Package temp = new Package('S', portUsed);
                 temp.setOperationCode(0);
                 sendProcessedPackage(temp);
+                Platform.runLater(() -> labelServer.setText("Server " + portUsed));
                 break;
             } catch (Exception ex) {
                 portUsed++;
@@ -180,6 +200,5 @@ public class ServerController implements Initializable {
         initializeServers();
         receivePackage();
     }
-
 
 }

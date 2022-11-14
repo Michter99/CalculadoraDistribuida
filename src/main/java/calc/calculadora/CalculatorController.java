@@ -38,6 +38,14 @@ public class CalculatorController implements Initializable {
     private static final Set<String> acusesDiv = new HashSet<>();
     private static final Set<String> eventosEnCiclo = new HashSet<>();
     private static final Set<String> eventosProcesados = new HashSet<>();
+    private static int ultimoNumeroAcusesSum = 0;
+    private static int ultimoNumeroAcusesRes = 0;
+    private static int ultimoNumeroAcusesMul = 0;
+    private static int ultimoNumeroAcusesDiv = 0;
+    private static int minSum = 1;
+    private static int minRes = 1;
+    private static int minMult = 1;
+    private static int minDiv = 1;
 
     @FXML
     private Label output;
@@ -130,28 +138,31 @@ public class CalculatorController implements Initializable {
                     Socket socket = serverSocket.accept();
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                     Package serverPackage = (Package) inputStream.readObject();
-                    if (serverPackage.getPackageType() == 'S' && serverPackage.getOperationCode() != 0) {
+                    if (serverPackage.getPackageType() == 'S' && serverPackage.getOperationCode() != 0 && serverPackage.getOriginalEmisor() == portUsed) {
                         if (serverPackage.isProccesedByServer() && !eventosProcesados.contains(serverPackage.getEvent())) {
                             eventosProcesados.add(serverPackage.getEvent());
-                            if (serverPackage.getOriginalEmisor() == portUsed) {
-                                result = String.valueOf(serverPackage.getResult());
-                                String symbol = switch (serverPackage.getOperationCode()) {
-                                    case 1 -> "+";
-                                    case 2 -> "-";
-                                    case 3 -> "*";
-                                    case 4 -> "/";
-                                    default -> "";
-                                };
-                                Platform.runLater(() -> {
-                                    output.setText(result);
-                                    calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
-                                    calcLog.appendText(serverPackage.getNum1() + " " + symbol + " " + serverPackage.getNum2() + " = " + serverPackage.getResult() + "\n\n");
-                                });
-                            }
+                            result = String.valueOf(serverPackage.getResult());
+                            String symbol = switch (serverPackage.getOperationCode()) {
+                                case 1 -> "+";
+                                case 2 -> "-";
+                                case 3 -> "*";
+                                case 4 -> "/";
+                                default -> "";
+                            };
+                            Platform.runLater(() -> {
+                                output.setText(result);
+                                calcLog.appendText("Código de operación: " + serverPackage.getOperationCode() + "\n");
+                                calcLog.appendText(serverPackage.getNum1() + " " + symbol + " " + serverPackage.getNum2() + " = " + serverPackage.getResult() + "\n\n");
+                            });
                         } else {
                             addFootprint(serverPackage);
                             verificaAcuse(serverPackage);
                         }
+                    } else if (serverPackage.getPackageType() == 'A') {
+                        minSum = serverPackage.getAcusesSuma();
+                        minRes = serverPackage.getAcusesResta();
+                        minMult = serverPackage.getAcusesMult();
+                        minDiv = serverPackage.getAcusesDiv();
                     }
                     inputStream.close();
                     socket.close();
@@ -208,6 +219,7 @@ public class CalculatorController implements Initializable {
         packageToServer.setEvent(generateSHA(System.currentTimeMillis() + footprint));
         packageToServer.setRecognizedOp(false);
         packageToServer.setOriginalEmisor(portUsed);
+        packageToServer.setClonePort(0);
 
         switch (op) {
             case "+" -> packageToServer.setOperationCode(1);
@@ -273,12 +285,7 @@ public class CalculatorController implements Initializable {
     }
 
     private static void verificaAcuse(Package serverPackage) {
-        int minSum = 3;
-        int minRes = 2;
-        int minMult = 1;
-        int minDiv = 2;
-
-        int sleepTime = 2;
+        int sleepTime = 1;
 
         if (eventosEnCiclo.contains(serverPackage.getEvent()))
             return;
@@ -288,30 +295,70 @@ public class CalculatorController implements Initializable {
                 switch (serverPackage.getOperationCode()) {
                     case 1 -> {
                         while (acusesSuma.size() < minSum) {
+                            if (ultimoNumeroAcusesSum == acusesSuma.size()) {
+                                Package clonePackage = new Package('C', portUsed);
+                                clonePackage.setClonePort(Integer.parseInt(acusesSuma.iterator().next()));
+                                clonePackage.setCloneNumber(minSum - acusesSuma.size());
+                                sendPackage(clonePackage);
+                                break;
+                            }
+                            ultimoNumeroAcusesSum = acusesSuma.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
                             sendPackage(serverPackage);
                         }
+                        TimeUnit.SECONDS.sleep(2);
+                        ultimoNumeroAcusesSum = 0;
                         sendRecognizedOperations(1);
                     }
                     case 2 -> {
                         while (acusesResta.size() < minRes) {
+                            if (ultimoNumeroAcusesRes == acusesResta.size()) {
+                                Package clonePackage = new Package('C', portUsed);
+                                clonePackage.setClonePort(Integer.parseInt(acusesResta.iterator().next()));
+                                clonePackage.setCloneNumber(minRes - acusesResta.size());
+                                sendPackage(clonePackage);
+                                break;
+                            }
+                            ultimoNumeroAcusesRes = acusesResta.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
                             sendPackage(serverPackage);
                         }
+                        TimeUnit.SECONDS.sleep(2);
+                        ultimoNumeroAcusesRes = 0;
                         sendRecognizedOperations(2);
                     }
                     case 3 -> {
                         while (acusesMult.size() < minMult) {
+                            if (ultimoNumeroAcusesMul == acusesMult.size()) {
+                                Package clonePackage = new Package('C', portUsed);
+                                clonePackage.setClonePort(Integer.parseInt(acusesMult.iterator().next()));
+                                clonePackage.setCloneNumber(minMult - acusesMult.size());
+                                sendPackage(clonePackage);
+                                break;
+                            }
+                            ultimoNumeroAcusesMul = acusesMult.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
                             sendPackage(serverPackage);
                         }
+                        TimeUnit.SECONDS.sleep(2);
+                        ultimoNumeroAcusesMul = 0;
                         sendRecognizedOperations(3);
                     }
                     case 4 -> {
                         while (acusesDiv.size() < minDiv) {
+                            if (ultimoNumeroAcusesDiv == acusesDiv.size()) {
+                                Package clonePackage = new Package('C', portUsed);
+                                clonePackage.setClonePort(Integer.parseInt(acusesDiv.iterator().next()));
+                                clonePackage.setCloneNumber(minDiv - acusesDiv.size());
+                                sendPackage(clonePackage);
+                                break;
+                            }
+                            ultimoNumeroAcusesDiv = acusesDiv.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
                             sendPackage(serverPackage);
                         }
+                        TimeUnit.SECONDS.sleep(2);
+                        ultimoNumeroAcusesDiv = 0;
                         sendRecognizedOperations(4);
                     }
                 }

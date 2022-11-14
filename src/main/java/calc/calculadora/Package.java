@@ -16,6 +16,12 @@ public class Package implements Serializable {
     private boolean recognizedOp;
     private boolean proccesedByServer;
     private int originalEmisor;
+    private int clonePort;
+    private int cloneNumber;
+    private int acusesSuma;
+    private int acusesResta;
+    private int acusesMult;
+    private int acusesDiv;
 
     public Package(char packageType, int emisor) {
         this.packageType = packageType;
@@ -57,4 +63,22 @@ public class Package implements Serializable {
 
     public void setOriginalEmisor(int originalEmisor) { this.originalEmisor = originalEmisor; }
     public int getOriginalEmisor() { return originalEmisor; }
+
+    public void setClonePort(int clonePort) { this.clonePort = clonePort; }
+    public int getClonePort() { return clonePort; }
+
+    public void setCloneNumber(int cloneNumber) { this.cloneNumber = cloneNumber; }
+    public int getCloneNumber() { return cloneNumber; }
+
+    public void setAcuses(int acusesSuma, int acusesResta, int acusesMult, int acusesDiv) {
+        this.acusesSuma = acusesSuma;
+        this.acusesResta = acusesResta;
+        this.acusesMult = acusesMult;
+        this.acusesDiv = acusesDiv;
+    }
+
+    public int getAcusesSuma() { return acusesSuma; }
+    public int getAcusesResta() { return acusesResta; }
+    public int getAcusesMult() { return acusesMult; }
+    public int getAcusesDiv() { return acusesDiv; }
 }
