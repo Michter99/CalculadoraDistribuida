@@ -1,5 +1,6 @@
 package calc.calculadora;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ChoiceBox;
@@ -96,8 +97,10 @@ public class AdminController implements Initializable {
                     Package serverPackage = (Package) inputStream.readObject();
                     if (serverPackage.getPackageType() == 'S') {
                         servidores.add(String.valueOf(serverPackage.getEmisor()));
-                        servidorField.getItems().clear();
-                        servidorField.getItems().addAll(servidores);
+                        Platform.runLater(() -> {
+                            servidorField.getItems().clear();
+                            servidorField.getItems().addAll(servidores);
+                        });
                     }
                     inputStream.close();
                     socket.close();
