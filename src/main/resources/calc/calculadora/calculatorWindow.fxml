@@ -7,105 +7,105 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="333.0" prefWidth="524.0" style="-fx-background-color: #111111;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calc.calculadora.ClientController">
-   <TextArea fx:id="calcLog" editable="false" layoutX="238.0" layoutY="25.0" prefHeight="235.0" prefWidth="268.0" wrapText="true">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="333.0" prefWidth="512.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calc.calculadora.ClientController">
+   <TextArea fx:id="calcLog" editable="false" layoutX="229.0" layoutY="25.0" prefHeight="235.0" prefWidth="268.0" style="-fx-border-color: #0071DC; -fx-border-width: 2; -fx-background-color: #FFFFFF;" wrapText="true">
       <font>
          <Font name="Century Gothic" size="11.0" />
       </font></TextArea>
-   <Button layoutX="293.0" layoutY="276.0" mnemonicParsing="false" onAction="#clearLog" prefHeight="39.0" prefWidth="157.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="Clear Log" textFill="WHITE">
+   <Button layoutX="284.0" layoutY="276.0" mnemonicParsing="false" onAction="#clearLog" prefHeight="39.0" prefWidth="157.0" style="-fx-background-color: #0071DC;" text="CLEAR LOG" textFill="WHITE">
       <font>
-         <Font name="Century Gothic" size="16.0" />
+         <Font name="Century Gothic Bold" size="18.0" />
       </font>
    </Button>
-   <Button layoutX="16.0" layoutY="73.0" mnemonicParsing="false" onAction="#clearOutput" prefHeight="40.0" prefWidth="142.0" style="-fx-background-radius: 30; -fx-background-color: #ACACAC;" text="AC">
+   <Button layoutX="16.0" layoutY="73.0" mnemonicParsing="false" onAction="#clearOutput" prefHeight="40.0" prefWidth="142.0" style="-fx-background-color: #0071DC;" text="AC" textFill="WHITE">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" layoutX="17.0" layoutY="123.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="7" textFill="WHITE">
+   <Button alignment="CENTER" layoutX="17.0" layoutY="123.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" text="7" textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" layoutX="67.0" layoutY="123.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="8" textFill="WHITE">
+   <Button alignment="CENTER" layoutX="67.0" layoutY="123.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" text="8" textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" layoutX="117.0" layoutY="123.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="9" textFill="WHITE">
+   <Button alignment="CENTER" layoutX="117.0" layoutY="123.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" text="9" textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" layoutX="17.0" layoutY="174.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="4" textFill="WHITE">
+   <Button alignment="CENTER" layoutX="17.0" layoutY="174.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" text="4" textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" layoutX="67.0" layoutY="174.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="5" textFill="WHITE">
+   <Button alignment="CENTER" layoutX="67.0" layoutY="174.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" text="5" textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" layoutX="117.0" layoutY="174.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="6" textFill="WHITE">
+   <Button alignment="CENTER" layoutX="117.0" layoutY="174.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" text="6" textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" layoutX="17.0" layoutY="225.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="1" textFill="WHITE">
+   <Button alignment="CENTER" layoutX="17.0" layoutY="225.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" text="1" textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" layoutX="67.0" layoutY="225.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="2" textFill="WHITE">
+   <Button alignment="CENTER" layoutX="67.0" layoutY="225.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" text="2" textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" layoutX="117.0" layoutY="225.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="3" textFill="WHITE">
+   <Button alignment="CENTER" layoutX="117.0" layoutY="225.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" text="3" textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="168.0" layoutY="123.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#processOperator" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #F29611;" text="⨉" textFill="WHITE">
+   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="168.0" layoutY="123.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#processOperator" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #0071DC;" text="⨉" textFill="WHITE">
       <font>
          <Font name="Century Gothic Bold" size="14.0" />
       </font>
    </Button>
-   <Button alignment="BASELINE_LEFT" layoutX="19.0" layoutY="276.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="88.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E; -fx-label-padding: 3;" text="0" textFill="WHITE">
+   <Button alignment="BASELINE_LEFT" layoutX="19.0" layoutY="276.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="88.0" style="-fx-background-color: #FFFFFF; -fx-label-padding: 3; -fx-border-color: #0071DC; -fx-border-width: 2;" text="0" textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Label fx:id="output" alignment="BOTTOM_RIGHT" layoutX="14.0" layoutY="22.0" prefHeight="39.0" prefWidth="193.0" text="0.0" textFill="WHITE">
+   <Label fx:id="output" alignment="BOTTOM_RIGHT" layoutX="14.0" layoutY="16.0" prefHeight="39.0" prefWidth="193.0" style="-fx-border-color: #0071DC; -fx-border-width: 2; -fx-padding: 0 10 0 0;" text="0.0" textFill="#0071dc">
       <padding>
          <Insets bottom="10.0" />
       </padding>
       <font>
-         <Font name="Century Gothic" size="30.0" />
+         <Font name="Century Gothic Bold" size="30.0" />
       </font>
    </Label>
-   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="117.0" layoutY="276.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #3E3E3E;" text="." textFill="WHITE">
+   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="117.0" layoutY="276.0" mnemonicParsing="false" onAction="#processNumPad" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" text="." textFill="#0071dc">
       <font>
-         <Font name="Century Gothic" size="17.0" />
+         <Font name="Century Gothic Bold" size="17.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="168.0" layoutY="73.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#processOperator" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #F29611;" text="÷" textFill="WHITE">
-      <font>
-         <Font name="Century Gothic" size="21.0" />
-      </font>
-   </Button>
-   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="168.0" layoutY="174.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#processOperator" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #F29611; -fx-padding: -5;" text="-" textFill="WHITE">
-      <font>
-         <Font name="Century Gothic" size="24.0" />
-      </font>
-   </Button>
-   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="168.0" layoutY="225.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#processOperator" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #F29611;" text="+" textFill="WHITE">
+   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="168.0" layoutY="73.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#processOperator" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #0071DC;" text="÷" textFill="WHITE">
       <font>
          <Font name="Century Gothic" size="20.0" />
       </font>
    </Button>
-   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="168.0" layoutY="276.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#processOperator" prefHeight="40.0" prefWidth="40.0" style="-fx-background-radius: 30; -fx-background-color: #F29611;" text="=" textFill="WHITE">
+   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="168.0" layoutY="174.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#processOperator" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #0071DC; -fx-padding: 0 0 5 0;" text="-" textFill="WHITE">
+      <font>
+         <Font name="Century Gothic" size="24.0" />
+      </font>
+   </Button>
+   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="168.0" layoutY="225.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#processOperator" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #0071DC;" text="+" textFill="WHITE">
+      <font>
+         <Font name="Century Gothic" size="20.0" />
+      </font>
+   </Button>
+   <Button alignment="CENTER" contentDisplay="CENTER" layoutX="168.0" layoutY="276.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#processOperator" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #0071DC;" text="=" textFill="WHITE">
       <font>
          <Font name="Century Gothic" size="20.0" />
       </font>
