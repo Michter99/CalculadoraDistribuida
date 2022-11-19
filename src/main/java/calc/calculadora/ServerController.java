@@ -5,12 +5,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import java.io.File;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+
+import java.io.*;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -41,32 +41,18 @@ public class ServerController implements Initializable {
                     Socket socket = serverSocket.accept();
                     ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                     Package clientPackage = (Package) inputStream.readObject();
-                    if (clientPackage.getPackageType() == 'C') {
-
-                        if (clientPackage.isRecognizedOp()) {
+                    if (clientPackage.getPackageType() == 'C' && checkService(clientPackage.getOperationCode())) { // Verificar que sea paquete del cliente y que el servicio solicitado esté en este servidor
+                        if (clientPackage.isRecognizedOp()) { // Si se tiene el acuse mínimo, se realiza la operacion
                             if (!processedEvents.contains(clientPackage.getEvent()))
                                 processOperation(clientPackage);
                             else
                                 continue;
                         }
                         else {
-                            if (clientPackage.getClonePort() == portUsed && !clientPackage.isRecognizedOp()) {
-                                serverSocket.close();
-                                for (int i = 7000; i <= 7004; i++) {
-                                    if (i != portUsed) {
-                                        new ProcessBuilder("cmd.exe", "/c", "del /S /Q C:\\CalculadoraServicios\\Server" + i + "\\*").start();
-                                        new ProcessBuilder("cmd.exe", "/c", "xcopy C:\\CalculadoraServicios\\Server" + portUsed + " C:\\CalculadoraServicios\\Server" + i + " /Y").start();
-                                    }
-                                }
-                                TimeUnit.SECONDS.sleep(1);
-                                serverSocket = new ServerSocket(portUsed);
-                                for (int i = 0; i < clientPackage.getCloneNumber(); i++) {
-                                    new ProcessBuilder("D:\\cloneServer.bat").start();
-                                }
-                                //initializeServers();
-                            } else {
+                            if (clientPackage.getClonePort() == portUsed) // Si se recibe la indicación de clonar y la solicitud es a este servidor
+                                cloneServer();
+                            else
                                 sendProcessedPackage(clientPackage);
-                            }
                         }
                     }
                     inputStream.close();
@@ -76,6 +62,55 @@ public class ServerController implements Initializable {
                 }
             }
         }).start();
+    }
+
+    private boolean checkService(int operationCode) {
+        String serviceName = switch (operationCode) {
+            case 1 -> "Suma.jar";
+            case 2 -> "Resta.jar";
+            case 3 -> "Multiplicacion.jar";
+            case 4 -> "Division.jar";
+            default -> "";
+        };
+
+        File folder = new File("C:\\CalculadoraServicios\\Server" + portUsed);
+        File[] listOfFiles = folder.listFiles();
+
+        for (int i = 0; i < Objects.requireNonNull(listOfFiles).length; i++) {
+            if (listOfFiles[i].isFile()) {
+                if (listOfFiles[i].getName().equals(serviceName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void cloneServer() throws IOException, InterruptedException {
+        serverSocket.close();
+        int tempPort = portUsed;
+        int objectivePort = 7000;
+        ServerSocket portToOpen;
+        while (true) {
+            try {
+                if (tempPort != objectivePort) {
+                    portToOpen = new ServerSocket(objectivePort);
+                    break;
+                } else {
+                    objectivePort++;
+                }
+            } catch (Exception e) {
+                objectivePort++;
+            }
+        }
+        portToOpen.close();
+
+        new ProcessBuilder("cmd.exe", "/c", "del /S /Q C:\\CalculadoraServicios\\Server" + objectivePort + "\\*").start();
+        new ProcessBuilder("cmd.exe", "/c", "xcopy C:\\CalculadoraServicios\\Server" + portUsed + " C:\\CalculadoraServicios\\Server" + objectivePort + " /Y").start();
+
+        TimeUnit.SECONDS.sleep(1);
+        serverSocket = new ServerSocket(portUsed);
+        new ProcessBuilder("D:\\cloneServer.bat").start();
     }
 
     void processOperation(Package receivedPackage) {
@@ -199,6 +234,7 @@ public class ServerController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeServers();
+        System.out.println("Server " + portUsed);
         receivePackage();
     }
 

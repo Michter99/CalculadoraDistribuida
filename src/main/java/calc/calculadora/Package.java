@@ -17,7 +17,6 @@ public class Package implements Serializable {
     private boolean proccesedByServer;
     private int originalEmisor;
     private int clonePort;
-    private int cloneNumber;
     private int acusesSuma;
     private int acusesResta;
     private int acusesMult;
@@ -66,9 +65,6 @@ public class Package implements Serializable {
 
     public void setClonePort(int clonePort) { this.clonePort = clonePort; }
     public int getClonePort() { return clonePort; }
-
-    public void setCloneNumber(int cloneNumber) { this.cloneNumber = cloneNumber; }
-    public int getCloneNumber() { return cloneNumber; }
 
     public void setAcuses(int acusesSuma, int acusesResta, int acusesMult, int acusesDiv) {
         this.acusesSuma = acusesSuma;

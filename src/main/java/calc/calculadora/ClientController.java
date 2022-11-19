@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
@@ -42,7 +43,7 @@ public class ClientController implements Initializable {
     private static int ultimoNumeroAcusesRes = 0;
     private static int ultimoNumeroAcusesMul = 0;
     private static int ultimoNumeroAcusesDiv = 0;
-    private static int minSum = 1;
+    private static int minSum = 3;
     private static int minRes = 1;
     private static int minMult = 1;
     private static int minDiv = 1;
@@ -128,6 +129,7 @@ public class ClientController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeClients();
+        System.out.println("Client " + portUsed);
         receivePackage();
     }
 
@@ -173,7 +175,8 @@ public class ClientController implements Initializable {
         }).start();
     }
 
-    private static void sendRecognizedOperations(int operationCode) {
+    private static void sendRecognizedOperations(int operationCode) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(4);
         switch (operationCode) {
             case 1 -> {
                 for (Package packageToServer : sumas) {
@@ -294,7 +297,7 @@ public class ClientController implements Initializable {
     }
 
     private static void verificaAcuse(Package serverPackage) {
-        int sleepTime = 1;
+        int sleepTime = 2;
 
         if (eventosEnCiclo.contains(serverPackage.getEvent()))
             return;
@@ -307,15 +310,13 @@ public class ClientController implements Initializable {
                             if (ultimoNumeroAcusesSum == acusesSuma.size()) {
                                 Package clonePackage = new Package('C', portUsed);
                                 clonePackage.setClonePort(selectCloningServer(acusesSuma));
-                                clonePackage.setCloneNumber(minSum - acusesSuma.size());
+                                clonePackage.setOperationCode(1);
                                 sendPackage(clonePackage);
-                                break;
                             }
                             ultimoNumeroAcusesSum = acusesSuma.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
                             sendPackage(serverPackage);
                         }
-                        TimeUnit.SECONDS.sleep(2);
                         ultimoNumeroAcusesSum = 0;
                         sendRecognizedOperations(1);
                     }
@@ -324,15 +325,13 @@ public class ClientController implements Initializable {
                             if (ultimoNumeroAcusesRes == acusesResta.size()) {
                                 Package clonePackage = new Package('C', portUsed);
                                 clonePackage.setClonePort(selectCloningServer(acusesResta));
-                                clonePackage.setCloneNumber(minRes - acusesResta.size());
+                                clonePackage.setOperationCode(2);
                                 sendPackage(clonePackage);
-                                break;
                             }
                             ultimoNumeroAcusesRes = acusesResta.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
                             sendPackage(serverPackage);
                         }
-                        TimeUnit.SECONDS.sleep(2);
                         ultimoNumeroAcusesRes = 0;
                         sendRecognizedOperations(2);
                     }
@@ -341,15 +340,13 @@ public class ClientController implements Initializable {
                             if (ultimoNumeroAcusesMul == acusesMult.size()) {
                                 Package clonePackage = new Package('C', portUsed);
                                 clonePackage.setClonePort(selectCloningServer(acusesMult));
-                                clonePackage.setCloneNumber(minMult - acusesMult.size());
+                                clonePackage.setOperationCode(3);
                                 sendPackage(clonePackage);
-                                break;
                             }
                             ultimoNumeroAcusesMul = acusesMult.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
                             sendPackage(serverPackage);
                         }
-                        TimeUnit.SECONDS.sleep(2);
                         ultimoNumeroAcusesMul = 0;
                         sendRecognizedOperations(3);
                     }
@@ -358,15 +355,13 @@ public class ClientController implements Initializable {
                             if (ultimoNumeroAcusesDiv == acusesDiv.size()) {
                                 Package clonePackage = new Package('C', portUsed);
                                 clonePackage.setClonePort(selectCloningServer(acusesDiv));
-                                clonePackage.setCloneNumber(minDiv - acusesDiv.size());
+                                clonePackage.setOperationCode(4);
                                 sendPackage(clonePackage);
-                                break;
                             }
                             ultimoNumeroAcusesDiv = acusesDiv.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
                             sendPackage(serverPackage);
                         }
-                        TimeUnit.SECONDS.sleep(2);
                         ultimoNumeroAcusesDiv = 0;
                         sendRecognizedOperations(4);
                     }

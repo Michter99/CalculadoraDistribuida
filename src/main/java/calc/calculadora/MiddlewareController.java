@@ -7,7 +7,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
@@ -41,6 +40,7 @@ public class MiddlewareController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeMiddlewares();
+        System.out.println("Node " + portUsed);
         receiveAndResendPackage();
     }
 
@@ -91,10 +91,9 @@ public class MiddlewareController implements Initializable {
                                     Socket socketReceiver = new Socket("localhost", cell);
                                     ObjectOutputStream outputStream = new ObjectOutputStream(socketReceiver.getOutputStream());
                                     packageData.setLastTypeOfEmisor('M');
-                                    packageData.setCloneNumber(0);
                                     outputStream.writeObject(packageData);
                                     socketReceiver.close();
-                                } catch (ConnectException ignored) {}
+                                } catch (Exception ignored) {}
                             }
                         }
                     } else if (packageData.getPackageType() != 'M') { // Si viene de celulas, envías a celulas y nodos
@@ -106,7 +105,7 @@ public class MiddlewareController implements Initializable {
                                     packageData.setLastTypeOfEmisor('M');
                                     outputStream.writeObject(packageData);
                                     socketReceiver.close();
-                                } catch (ConnectException ignored) {}
+                                } catch (Exception ignored) {}
                             }
                         }
                         for (int cell : cells) {
@@ -117,7 +116,7 @@ public class MiddlewareController implements Initializable {
                                     packageData.setLastTypeOfEmisor('M');
                                     outputStream.writeObject(packageData);
                                     socketReceiver.close();
-                                } catch (ConnectException ignored) {}
+                                } catch (Exception ignored) {}
                             }
                         }
                     }
