@@ -3,8 +3,11 @@ package calc.calculadora;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.stage.Stage;
+
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -24,6 +27,8 @@ public class MiddlewareController implements Initializable {
 
     @FXML
     public Label nodeName;
+    @FXML
+    public Button closeButton;
     @FXML
     private TextArea calcLog;
 
@@ -126,5 +131,12 @@ public class MiddlewareController implements Initializable {
                 }
             }
         }).start();
+    }
+
+    public void exitNode() {
+        Stage stage = (Stage) closeButton.getScene().getWindow();
+        stage.close();
+        Platform.exit();
+        System.exit(0);
     }
 }

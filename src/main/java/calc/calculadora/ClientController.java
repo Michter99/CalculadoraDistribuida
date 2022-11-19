@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.stage.Stage;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ClientController implements Initializable {
 
+    public Button closeButton;
     private double number1;
     private String operator = "";
     private boolean start = true;
@@ -43,7 +45,7 @@ public class ClientController implements Initializable {
     private static int ultimoNumeroAcusesRes = 0;
     private static int ultimoNumeroAcusesMul = 0;
     private static int ultimoNumeroAcusesDiv = 0;
-    private static int minSum = 3;
+    private static int minSum = 1;
     private static int minRes = 1;
     private static int minMult = 1;
     private static int minDiv = 1;
@@ -176,7 +178,7 @@ public class ClientController implements Initializable {
     }
 
     private static void sendRecognizedOperations(int operationCode) throws InterruptedException {
-        TimeUnit.SECONDS.sleep(4);
+        TimeUnit.SECONDS.sleep(3);
         switch (operationCode) {
             case 1 -> {
                 for (Package packageToServer : sumas) {
@@ -297,7 +299,7 @@ public class ClientController implements Initializable {
     }
 
     private static void verificaAcuse(Package serverPackage) {
-        int sleepTime = 2;
+        int sleepTime = 3;
 
         if (eventosEnCiclo.contains(serverPackage.getEvent()))
             return;
@@ -312,6 +314,8 @@ public class ClientController implements Initializable {
                                 clonePackage.setClonePort(selectCloningServer(acusesSuma));
                                 clonePackage.setOperationCode(1);
                                 sendPackage(clonePackage);
+                                if (ultimoNumeroAcusesSum + 1 == minSum)
+                                    break;
                             }
                             ultimoNumeroAcusesSum = acusesSuma.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
@@ -327,6 +331,8 @@ public class ClientController implements Initializable {
                                 clonePackage.setClonePort(selectCloningServer(acusesResta));
                                 clonePackage.setOperationCode(2);
                                 sendPackage(clonePackage);
+                                if (ultimoNumeroAcusesRes + 1 == minRes)
+                                    break;
                             }
                             ultimoNumeroAcusesRes = acusesResta.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
@@ -342,6 +348,8 @@ public class ClientController implements Initializable {
                                 clonePackage.setClonePort(selectCloningServer(acusesMult));
                                 clonePackage.setOperationCode(3);
                                 sendPackage(clonePackage);
+                                if (ultimoNumeroAcusesMul + 1 == minMult)
+                                    break;
                             }
                             ultimoNumeroAcusesMul = acusesMult.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
@@ -357,6 +365,8 @@ public class ClientController implements Initializable {
                                 clonePackage.setClonePort(selectCloningServer(acusesDiv));
                                 clonePackage.setOperationCode(4);
                                 sendPackage(clonePackage);
+                                if (ultimoNumeroAcusesDiv + 1 == minDiv)
+                                    break;
                             }
                             ultimoNumeroAcusesDiv = acusesDiv.size();
                             TimeUnit.SECONDS.sleep(sleepTime);
@@ -368,5 +378,12 @@ public class ClientController implements Initializable {
                 }
             } catch (Exception ignored) {}
         }).start();
+    }
+
+    public void exit() {
+        Stage stage = (Stage) closeButton.getScene().getWindow();
+        stage.close();
+        Platform.exit();
+        System.exit(0);
     }
 }

@@ -7,19 +7,24 @@
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="300.0" prefWidth="260.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="calc.calculadora.MiddlewareController">
-   <Label fx:id="nodeName" layoutX="67.0" layoutY="11.0" prefHeight="31.0" prefWidth="126.0" style="-fx-font-weight: bold;" text="Node 5000" textAlignment="CENTER" textFill="#0071dc">
+   <Label fx:id="nodeName" layoutX="67.0" layoutY="14.0" prefHeight="31.0" prefWidth="126.0" text="Node 5000" textAlignment="CENTER" textFill="#0071dc">
       <font>
          <Font name="Century Gothic" size="24.0" />
       </font>
    </Label>
-   <TextArea fx:id="calcLog" editable="false" layoutX="19.0" layoutY="51.0" prefHeight="187.0" prefWidth="220.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC; -fx-border-width: 2;" wrapText="true">
+   <TextArea fx:id="calcLog" editable="false" layoutX="17.0" layoutY="56.0" prefHeight="187.0" prefWidth="225.0" style="-fx-background-color: #FFFFFF; -fx-border-color: #0071DC;" wrapText="true">
       <font>
          <Font name="Century Gothic" size="11.0" />
       </font>
    </TextArea>
-   <Button blendMode="SRC_ATOP" depthTest="DISABLE" focusTraversable="false" layoutX="77.0" layoutY="255.0" maxHeight="30.0" maxWidth="105.0" minHeight="20.0" minWidth="20.0" mnemonicParsing="false" onAction="#clearLog" prefHeight="30.0" prefWidth="105.0" scaleShape="false" style="-fx-background-color: #0071DC; -fx-border-color: #0071DC; -fx-border-width: 2;" text="CLEAR LOG" textFill="WHITE">
+   <Button blendMode="SRC_ATOP" depthTest="DISABLE" focusTraversable="false" layoutX="19.0" layoutY="255.0" maxHeight="30.0" maxWidth="105.0" minHeight="20.0" minWidth="20.0" mnemonicParsing="false" onAction="#clearLog" prefHeight="30.0" prefWidth="105.0" scaleShape="false" style="-fx-background-color: #0071DC; -fx-background-radius: 20;" text="CLEAR LOG" textFill="WHITE">
       <font>
-         <Font name="Century Gothic Bold" size="14.0" />
+         <Font name="Century Gothic" size="14.0" />
+      </font>
+   </Button>
+   <Button fx:id="closeButton" blendMode="SRC_ATOP" depthTest="DISABLE" focusTraversable="false" layoutX="134.0" layoutY="255.0" maxHeight="30.0" maxWidth="105.0" minHeight="20.0" minWidth="20.0" mnemonicParsing="false" onAction="#exitNode" prefHeight="30.0" prefWidth="105.0" scaleShape="false" style="-fx-background-color: #FFFFFF; -fx-background-radius: 20; -fx-border-color: #0071DC; -fx-border-radius: 20;" text="EXIT" textFill="#0071dc">
+      <font>
+         <Font name="Century Gothic" size="14.0" />
       </font>
    </Button>
 </AnchorPane>

@@ -3,8 +3,10 @@ package calc.calculadora;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.stage.Stage;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -13,12 +15,13 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class ServerController implements Initializable {
 
     @FXML
     public Label serverLabel;
+    @FXML
+    public Button closeButton;
     @FXML
     private TextArea calcLog;
 
@@ -86,7 +89,7 @@ public class ServerController implements Initializable {
         return false;
     }
 
-    private void cloneServer() throws IOException, InterruptedException {
+    private void cloneServer() throws IOException {
         serverSocket.close();
         int tempPort = portUsed;
         int objectivePort = 7000;
@@ -108,7 +111,6 @@ public class ServerController implements Initializable {
         new ProcessBuilder("cmd.exe", "/c", "del /S /Q C:\\CalculadoraServicios\\Server" + objectivePort + "\\*").start();
         new ProcessBuilder("cmd.exe", "/c", "xcopy C:\\CalculadoraServicios\\Server" + portUsed + " C:\\CalculadoraServicios\\Server" + objectivePort + " /Y").start();
 
-        TimeUnit.SECONDS.sleep(1);
         serverSocket = new ServerSocket(portUsed);
         new ProcessBuilder("D:\\cloneServer.bat").start();
     }
@@ -238,4 +240,10 @@ public class ServerController implements Initializable {
         receivePackage();
     }
 
+    public void closeServer() {
+        Stage stage = (Stage) closeButton.getScene().getWindow();
+        stage.close();
+        Platform.exit();
+        System.exit(0);
+    }
 }

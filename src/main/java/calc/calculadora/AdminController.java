@@ -3,8 +3,10 @@ package calc.calculadora;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -18,6 +20,7 @@ import java.util.Set;
 
 public class AdminController implements Initializable {
 
+    public Button closeButton;
     @FXML
     private TextField sumAcuse;
     @FXML
@@ -42,7 +45,6 @@ public class AdminController implements Initializable {
         int acusesResta = Integer.parseInt(resAcuse.getText());
         int acusesMultiplicacion = Integer.parseInt(multAcuse.getText());
         int acusesDivision = Integer.parseInt(divAcuse.getText());
-        System.out.println("Suma " + sumAcuse.getText());
         Package packet = new Package('A', portUsed);
         packet.setAcuses(acusesSuma, acusesResta, acusesMultiplicacion, acusesDivision);
         sendPackage(packet);
@@ -109,5 +111,12 @@ public class AdminController implements Initializable {
                 }
             }
         }).start();
+    }
+
+    public void exit() {
+        Stage stage = (Stage) closeButton.getScene().getWindow();
+        stage.close();
+        Platform.exit();
+        System.exit(0);
     }
 }
