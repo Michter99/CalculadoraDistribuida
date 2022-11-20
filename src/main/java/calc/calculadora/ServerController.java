@@ -35,6 +35,7 @@ public class ServerController implements Initializable {
     private static int connectedNode = 5000;
     private static String footprint = "";
     private static final Set<String> processedEvents = new HashSet<>();
+    private static int selectedCloningClient = 0;
 
 
     void receivePackage() {
@@ -52,8 +53,10 @@ public class ServerController implements Initializable {
                                 continue;
                         }
                         else {
-                            if (clientPackage.getClonePort() == portUsed) // Si se recibe la indicación de clonar y la solicitud es a este servidor
+                            if (clientPackage.getClonePort() == portUsed && (selectedCloningClient == clientPackage.getEmisor() || selectedCloningClient == 0)) { // Si se recibe la indicación de clonar y la solicitud es a este servidor
+                                selectedCloningClient = clientPackage.getEmisor();
                                 cloneServer();
+                            }
                             else
                                 sendProcessedPackage(clientPackage);
                         }
@@ -116,6 +119,7 @@ public class ServerController implements Initializable {
     }
 
     void processOperation(Package receivedPackage) {
+        selectedCloningClient = 0;
         double number1 = receivedPackage.getNum1();
         double number2 = receivedPackage.getNum2();
         int op = receivedPackage.getOperationCode();
